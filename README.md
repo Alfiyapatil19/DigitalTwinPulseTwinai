@@ -34,6 +34,7 @@ https://youtu.be/chsFYVFtefM
 | **System Architecture Diagram (PDF)** | Vector PDF | [docs/architecture.pdf](docs/architecture.pdf) |
 | **System Architecture Diagram (Image)** | High-Res PNG | [docs/architecture.png](docs/architecture.png) |
 | **Architecture Source Code** | Mermaid (`.mmd`) | [docs/architecture.mmd](docs/architecture.mmd) |
+| **UI Screenshots Gallery** | PNG / JPG | [docs/screenshots/](docs/screenshots/) |
 | **Project Presentation** | Presentation PDF | [docs/presentation.pdf](docs/presentation.pdf) |
 | **Open-Source License** | MIT License | [LICENSE](LICENSE) |
 | **Demonstration Video** | YouTube | [https://youtu.be/chsFYVFtefM](https://youtu.be/chsFYVFtefM) |
@@ -188,19 +189,29 @@ Synthea EHR records and wearable sensor streams do not natively share identifier
 
 ---
 
-## 6. Doctor Clinical Platform Features
+## 6. Doctor Clinical Platform Features & UI Screenshots
 
-The platform provides a unified clinical cockpit for endocrinologists and care teams:
+The platform provides a unified clinical cockpit for endocrinologists, care teams, and researchers:
 
-1. **Clinical Overview & Provenance:** Aggregated population metrics across all 108 patients, Time-in-Range (TIR) distribution, and SNOMED-CT condition prevalence.
-2. **Patient Cohort Directory:** Instant multi-parameter search and triage across all 108 patients with risk tags.
-3. **Continuous Glucose & 30-Min AI Forecast:** Real-time sensor stream, instantaneous rate-of-change velocity arrows, dynamic 30-minute prediction curve, and 95% confidence interval cone.
-4. **Interactive Dynamic ML Predictor from Datasets:** Direct dataset ingestion studio allowing clinicians to load any of the 15,731 rows, inspect 19 raw feature inputs, run real-time XGBoost inference, and compare predictions against ground truth.
-5. **"What-If" Simulation Sandbox:** In-silico intervention laboratory to test carbohydrate meals (20g–75g), correction insulin boluses (2U–6U), physical exercise sessions, and stress spikes before writing prescriptions.
-6. **Alert Monitoring Center:** ADA Level 1 (Warning) and Level 2 (Critical $<54\text{ mg/dL}$ or $>250\text{ mg/dL}$) alert management with Pending, Confirmed, and Resolved clinical workflows.
-7. **Multimodal Wearables View:** Real-time telemetry monitoring for Heart Rate, Skin Temperature, Galvanic Skin Response, and Stress.
-8. **EHR & Medical History:** Full longitudinal medical history, SNOMED-CT problem list, and RxNorm active prescriptions.
-9. **Whole-Body Metabolic Twin 3D View (`/metabolic-twin`):** Interactive 3D biological avatar with real-time multi-organ physiological feedback (pancreatic beta-cell function, hepatic glucose output, and muscle glucose uptake).
+### 1. Clinical Cohort Overview & Provenance
+Aggregated population metrics across all 108 patients, Time-in-Range (TIR) distribution, and SNOMED-CT condition prevalence.
+![Clinical Cohort Overview](docs/screenshots/01_clinical_dashboard.png)
+
+### 2. Continuous Glucose Telemetry & 30-Min AI Forecast
+Real-time sensor stream, instantaneous rate-of-change velocity arrows, dynamic 30-minute predictive trajectory, and 95% confidence interval cone.
+![Continuous Glucose Forecast](docs/screenshots/02_glycemic_forecast.png)
+
+### 3. Whole-Body Metabolic Digital Twin 3D View (`/metabolic-twin`)
+Interactive 3D biological avatar with real-time multi-organ physiological feedback (pancreatic beta-cell function, hepatic glucose output, and muscle glucose uptake) coupled with live smart-watch and CGM telemetry.
+![Whole-Body Metabolic Twin](docs/screenshots/03_whole_body_metabolic_twin.png)
+
+### 4. Digital Twin "What-If" Clinical Intervention Sandbox
+In-silico intervention laboratory to test carbohydrate meals (20g–75g), correction insulin boluses (2U–6U), physical exercise sessions, and acute stress perturbations before writing real-world prescriptions.
+![What-If Simulation Sandbox](docs/screenshots/04_what_if_simulation.jpg)
+
+### 5. ADA Clinical Risk Alerts Monitoring Center
+American Diabetes Association Level 1 (Warning) and Level 2 (Critical $<54\text{ mg/dL}$ or $>250\text{ mg/dL}$) alert triage and clinical management workflow (Pending, Confirmed, Resolved).
+![Alerts Monitoring Center](docs/screenshots/05_alerts_monitoring_center.jpg)
 
 ---
 

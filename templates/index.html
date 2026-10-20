@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PULSE-TWIN 2026 | Digital Twin Healthcare Dashboard</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="dark-theme">
+    <!-- Main Platform Shell with Persistent Sidebar -->
+    <div class="main-platform-wrap">
+
+        <!-- 1. LEFT PRIMARY NAVIGATION SIDEBAR -->
+        <aside class="platform-sidebar">
+            <div class="platform-brand">
+                <div class="p-brand-icon">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <div class="p-brand-info">
+                    <h2>PULSE-TWIN <span class="p-badge-poc">PoC</span></h2>
+                    <p>Clinical Digital Twin</p>
+                </div>
+            </div>
+
+            <nav class="side-nav-menu">
+                <a href="javascript:void(0)" class="side-nav-item active" data-view="overview" id="navItemOverview">
+                    <div class="nav-left-part"><i class="fa-solid fa-hospital"></i> <span>Overview</span></div>
+                </a>
+                <a href="javascript:void(0)" class="side-nav-item" data-view="patients" id="navItemPatients">
+                    <div class="nav-left-part"><i class="fa-solid fa-users"></i> <span>Patients</span></div>
+                    <span class="nav-tag-badge badge-tag-cyan">108</span>
+                </a>
+                <a href="/metabolic-twin" class="side-nav-item nav-special" title="Open Whole-Body Metabolic Twin View">
+                    <div class="nav-left-part"><i class="fa-solid fa-person-rays"></i> <span>Digital Twin</span></div>
+                    <span class="nav-tag-badge badge-tag-cyan">3D Visual</span>
+                </a>
+                <a href="javascript:void(0)" class="side-nav-item" data-view="predictions" id="navItemPredictions">
+                    <div class="nav-left-part"><i class="fa-solid fa-chart-line"></i> <span>Predictions</span></div>
+                </a>
+                <a href="javascript:void(0)" class="side-nav-item" data-view="simulation" id="navItemSimulation">
+                    <div class="nav-left-part"><i class="fa-solid fa-sliders"></i> <span>Simulation Lab</span></div>
+                </a>
+                <a href="javascript:void(0)" class="side-nav-item" data-view="alerts" id="navItemAlerts">
+                    <div class="nav-left-part"><i class="fa-solid fa-bell"></i> <span>Alerts</span></div>
+                    <span class="nav-tag-badge badge-tag-amber" id="navAlertBadge">2</span>
+                </a>
+                <a href="javascript:void(0)" class="side-nav-item" data-view="wearables" id="navItemWearables">
+                    <div class="nav-left-part"><i class="fa-solid fa-microchip"></i> <span>Wearables</span></div>
+                </a>
+                <a href="javascript:void(0)" class="side-nav-item" data-view="ehr" id="navItemEHR">
+                    <div class="nav-left-part"><i class="fa-solid fa-file-medical"></i> <span>EHR & History</span></div>
+                </a>
+                <a href="javascript:void(0)" class="side-nav-item" data-view="models" id="sideNavModelsBtn">
+                    <div class="nav-left-part"><i class="fa-solid fa-database"></i> <span>Data & Models</span></div>
+                </a>
+                <a href="javascript:void(0)" class="side-nav-item" data-view="settings" id="sideNavSettingsBtn">
+                    <div class="nav-left-part"><i class="fa-solid fa-gear"></i> <span>Settings</span></div>
+                </a>
+            </nav>
+
+            <div class="sidebar-bottom-quote">
+                <svg viewBox="0 0 100 20" preserveAspectRatio="none">
+                    <path d="M0 10 L30 10 L35 2 L42 18 L48 5 L53 14 L58 10 L100 10" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <p><strong>Happiest Health 2026</strong><br>Proactive care. Healthier tomorrows.</p>
+            </div>
+        </aside>
+
+        <!-- 2. MAIN APPLICATION WORKSPACE -->
+        <div class="app-layout" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+            
+            <!-- TOP PRESENTATION NAVIGATION BAR -->
+            <header class="top-nav">
+                <div class="nav-brand" style="gap: 16px;">
+                    <div class="top-nav-cohort">
+                        <span><i class="fa-solid fa-folder-tree"></i> Cohort:</span>
+                        <select class="top-cohort-select" id="topCohortSelect">
+                            <option value="all">Diabetes Cohort (108 Patients - C-CDA)</option>
+                            <option value="active">Active Twins (10 Paired Streams)</option>
+                            <option value="risk">High Risk Glycemic Patients</option>
+                        </select>
+                    </div>
+
+                    <div class="simulation-status" id="streamStatusBadge">
+                        <span class="status-dot pulsating"></span>
+                        <span id="streamStatusText">Live Twin Stream</span>
+                    </div>
+                </div>
+
+                <div class="nav-telemetry-controls">
+                    <div class="sim-controls-group">
+                        <button class="btn btn-outline btn-sm" id="btnStepNext" title="Advance 1 measurement interval">
+                            <i class="fa-solid fa-forward-step"></i> Step
+                        </button>
+                        <button class="btn btn-primary btn-sm" id="btnToggleStream" title="Toggle automatic continuous stream">
+                            <i class="fa-solid fa-play" id="streamPlayIcon"></i> <span id="streamPlayText">Auto-Stream</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="nav-right-actions">
+                    <div class="live-clock">
+                        <i class="fa-regular fa-clock"></i>
+                        <span id="systemClock">--:--:--</span>
+                    </div>
+
+                    <div class="btn-bell-alert" id="btnBellAlert" title="Clinical Vital Signs Alerts">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="bell-badge-count">2</span>
+                    </div>
+
+                    <div class="doctor-profile-chip">
+                        <div class="doctor-avatar-circle">JD</div>
+                        <div class="doctor-meta-text">
+                            <span class="doctor-name-title">Dr. John Doe</span>
+                            <span class="doctor-dept-title">Clinical Endocrinologist</span>
+                        </div>
+                    </div>
+
+                    <a href="/metabolic-twin" class="btn btn-sm" id="btnGoMetabolicTwin" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg, #0ea5e9, #0d9488);color:#ffffff;text-decoration:none;font-weight:600;padding:7px 14px;border-radius:8px;box-shadow:0 0 16px rgba(14,165,233,0.4);">
+                        <i class="fa-solid fa-person-rays"></i> Metabolic Twin UI
+                    </a>
+
+                    <button class="btn btn-sm" id="btnTopPredictDataset" onclick="openDatasetPredictorStudio()" style="display:inline-flex;align-items:center;gap:6px;background:rgba(14,165,233,0.15);border:1px solid rgba(14,165,233,0.4);color:#38bdf8;font-weight:600;padding:6px 12px;border-radius:8px;">
+                        <i class="fa-solid fa-microchip"></i> Predict from Dataset
+                    </button>
+
+                    <button class="btn btn-glass btn-sm" id="btnOpenModelModal">
+                        <i class="fa-solid fa-brain"></i> ML Specs
+                    </button>
+                </div>
+            </header>
+
+            <!-- MAIN WORKSPACE -->
+            <div class="workspace-body" style="flex: 1; overflow-y: auto;">
+            
+            <!-- LEFT SIDEBAR: PATIENT BROWSER -->
+            <aside class="sidebar-patients">
+                <div class="sidebar-header">
+                    <h3><i class="fa-solid fa-hospital-user"></i> Patient Cohort</h3>
+                    <span class="cohort-count-badge" id="patientCountBadge">108</span>
+                </div>
+
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="patientSearchInput" placeholder="Search by patient or condition...">
+                </div>
+
+                <div class="patient-filter-tabs">
+                    <button class="tab-btn active" data-filter="all">All</button>
+                    <button class="tab-btn" data-filter="paired">Paired Twins</button>
+                    <button class="tab-btn" data-filter="risk">At Risk</button>
+                </div>
+
+                <div class="patient-list" id="patientListContainer">
+                    <!-- Dynamic Patient Cards injected by JS -->
+                    <div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading cohort...</div>
+                </div>
+            </aside>
+
+            <!-- MAIN DASHBOARD CONTENT (9 PRESENTATION VIEWS) -->
+            <main class="dashboard-main" style="padding: 16px 20px;">
+
+                <!-- =======================================================
+                     VIEW 1: CLINICAL OVERVIEW & PROVENANCE
+                     ======================================================= -->
+                <div class="app-view" id="view-overview">
+                    <div class="view-header-title">
+                        <div>
+                            <h2><i class="fa-solid fa-hospital"></i> Clinical Cohort Overview & Provenance</h2>
+                            <p>Aggregated population metrics across 108 EHR patients & 10 paired continuous IoT streams</p>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-primary btn-sm" onclick="switchPlatformView('predictions')">
+                                <i class="fa-solid fa-person-rays"></i> Open Active Patient Twin
+                            </button>
+                            <a href="/metabolic-twin" class="btn btn-glass btn-sm" style="text-decoration:none;">
+                                <i class="fa-solid fa-cube"></i> Whole-Body 3D View
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 4 Overview KPI Cards -->
+                    <div class="overview-kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-label"><i class="fa-solid fa-users"></i> Total EHR Patients</div>
+                            <div class="kpi-num" id="overviewTotalPatients">108</div>
+                            <div class="kpi-meta"><i class="fa-solid fa-check"></i> Synthea C-CDA XML (100% Ingested)</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label"><i class="fa-solid fa-satellite-dish"></i> Active Digital Twins</div>
+                            <div class="kpi-num" style="color: #38bdf8;" id="overviewActiveTwins">108</div>
+                            <div class="kpi-meta"><i class="fa-solid fa-link"></i> Paired Continuous CGM & IoT Streams</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label"><i class="fa-solid fa-droplet"></i> Population Mean Glucose</div>
+                            <div class="kpi-num" style="color: #34d399;" id="overviewMeanGlucose">112.7 <small style="font-size:14px; color:#94a3b8;">mg/dL</small></div>
+                            <div class="kpi-meta" id="overviewGlucoseRangeMeta"><i class="fa-solid fa-bullseye"></i> Target: 70 - 180 mg/dL</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label"><i class="fa-solid fa-triangle-exclamation"></i> Active Risk Alerts</div>
+                            <div class="kpi-num" style="color: #f87171;" id="overviewLevel2Alerts">2 <small style="font-size:14px; color:#fbbf24;">Level 2</small></div>
+                            <div class="kpi-meta" style="color:#f87171;" id="overviewLevel1Alerts"><i class="fa-solid fa-bell"></i> 114 Level 1 Warnings</div>
+                        </div>
+                    </div>
+
+                    <!-- 2-Column Overview Summary -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <!-- Top Conditions Prevalence -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <div class="chart-title">
+                                    <i class="fa-solid fa-stethoscope"></i>
+                                    <h3>Top Clinical Conditions in Cohort (SNOMED-CT)</h3>
+                                </div>
+                            </div>
+                            <div id="overviewConditionsContainer" style="padding: 12px 16px; display: flex; flex-direction: column; gap: 10px;">
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+                                        <span>Type 2 Diabetes Mellitus [SNOMED: 44054006]</span>
+                                        <strong>108 Patients (100%)</strong>
+                                    </div>
+                                    <div style="height:6px; background:#1e293b; border-radius:3px; overflow:hidden;">
+                                        <div style="width:100%; height:100%; background:linear-gradient(90deg, #0ea5e9, #0d9488);"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+                                        <span>Medication review due [SNOMED: 314529007]</span>
+                                        <strong>692 Encounters</strong>
+                                    </div>
+                                    <div style="height:6px; background:#1e293b; border-radius:3px; overflow:hidden;">
+                                        <div style="width:78%; height:100%; background:linear-gradient(90deg, #0ea5e9, #0d9488);"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+                                        <span>Stress finding [SNOMED: 73595000]</span>
+                                        <strong>260 Patients</strong>
+                                    </div>
+                                    <div style="height:6px; background:#1e293b; border-radius:3px; overflow:hidden;">
+                                        <div style="width:62%; height:100%; background:linear-gradient(90deg, #f59e0b, #ef4444);"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+                                        <span>Gingivitis disorder [SNOMED: 66383009]</span>
+                                        <strong>244 Patients</strong>
+                                    </div>
+                                    <div style="height:6px; background:#1e293b; border-radius:3px; overflow:hidden;">
+                                        <div style="width:52%; height:100%; background:linear-gradient(90deg, #0ea5e9, #0d9488);"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Ingestion & Provenance Health -->
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <div class="chart-title">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                    <h3>Data Ingestion & Provenance Health</h3>
+                                </div>
+                            </div>
+                            <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
+                                <div style="display:flex; justify-content:space-between; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                                    <span style="color:#94a3b8;">EHR Ingestion (Synthea C-CDA):</span>
+                                    <strong style="color:#34d399;"><i class="fa-solid fa-circle-check"></i> 108 XML Records (100% Parsed)</strong>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                                    <span style="color:#94a3b8;">CGM & IoT Ingestion (Kaggle GlucoBench):</span>
+                                    <strong style="color:#34d399;"><i class="fa-solid fa-circle-check"></i> 15,731 Time-Series Rows</strong>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                                    <span style="color:#94a3b8;">Wearable Telemetry (Empatica E4):</span>
+                                    <strong style="color:#38bdf8;"><i class="fa-solid fa-wave-square"></i> HR, Skin Temp, GSR Active</strong>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; padding-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                                    <span style="color:#94a3b8;">Inference Serving Latency:</span>
+                                    <strong style="color:#38bdf8;">1.84 ms / prediction</strong>
+                                </div>
+                                <div style="display:flex; justify-content:space-between;">
+                                    <span style="color:#94a3b8;">Regulatory Compliance:</span>
+                                    <strong style="color:#fbbf24;"><i class="fa-solid fa-lock"></i> DPDP Act 2023 & HIPAA Compliant</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Navigation Cards Grid -->
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+                        <div class="kpi-card" style="cursor: pointer;" onclick="switchPlatformView('predictions')">
+                            <div class="kpi-label"><i class="fa-solid fa-chart-line"></i> Glycemic Forecasting</div>
+                            <h4 style="font-size:15px; color:#fff; margin: 4px 0 6px;">30-Min AI Forecast</h4>
+                            <p style="font-size:11px; color:#94a3b8;">Observe real-time glucose trajectories and ADA Level 2 hypo risk alerts.</p>
+                        </div>
+                        <div class="kpi-card" style="cursor: pointer;" onclick="switchPlatformView('simulation')">
+                            <div class="kpi-label"><i class="fa-solid fa-sliders"></i> Clinical Sandbox</div>
+                            <h4 style="font-size:15px; color:#fff; margin: 4px 0 6px;">"What-If" Interventions</h4>
+                            <p style="font-size:11px; color:#94a3b8;">Simulate carbohydrate meals, insulin boluses, and exercise sessions on the twin.</p>
+                        </div>
+                        <div class="kpi-card" style="cursor: pointer;" onclick="switchPlatformView('alerts')">
+                            <div class="kpi-label"><i class="fa-solid fa-bell"></i> Monitoring Center</div>
+                            <h4 style="font-size:15px; color:#fff; margin: 4px 0 6px;">Vital Signs Alerts</h4>
+                            <p style="font-size:11px; color:#94a3b8;">Review pending, confirmed, and resolved clinical hypoglycemia alerts.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =======================================================
+                     VIEW 2: PATIENT COHORT DIRECTORY
+                     ======================================================= -->
+                <div class="app-view hidden-view" id="view-patients">
+                    <div class="view-header-title">
+                        <div>
+                            <h2><i class="fa-solid fa-users"></i> Patient Cohort Directory</h2>
+                            <p>Search and select from 108 synthetic EHR patient records (HL7 C-CDA)</p>
+                        </div>
+                        <span class="cohort-count-badge" style="font-size:13px; padding:4px 12px;">108 Registered Patients</span>
+                    </div>
+
+                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; gap:12px;">
+                            <div class="search-box" style="flex:1; max-width:400px;">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="patientSearchInputAlt" placeholder="Search by patient name, city, or condition..." oninput="syncPatientSearch(this.value)">
+                            </div>
+                            <div class="patient-filter-tabs">
+                                <button class="tab-btn active" data-filter="all">All (108)</button>
+                                <button class="tab-btn" data-filter="paired">Paired Twins (10)</button>
+                                <button class="tab-btn" data-filter="risk">At Risk</button>
+                            </div>
+                        </div>
+
+                        <div class="patient-list" id="patientListContainerAlt" style="max-height: 520px; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =======================================================
+                     VIEW 3: PREDICTIONS & CONTINUOUS GLUCOSE MONITORING
+                     ======================================================= -->
+                <div class="app-view hidden-view" id="view-predictions">
+                    <div class="view-header-title">
+                        <div>
+                            <h2><i class="fa-solid fa-chart-line"></i> Continuous Glucose & 30-Min AI Forecast</h2>
+                            <p>Real-time interstitial telemetry with Champion XGBoost 30-minute predictive trajectory</p>
+                        </div>
+                        <span class="badge badge-ai" style="font-size:12px; padding:4px 10px;">XGBoost 30m Horizon</span>
+                    </div>
+
+                    <!-- Shared Patient Clinical Banner -->
+                    <section class="patient-banner" id="patientBanner">
+                        <div class="patient-primary-info">
+                            <div class="patient-avatar" id="patientAvatar">
+                                <i class="fa-solid fa-user-injured"></i>
+                            </div>
+                            <div class="patient-meta">
+                                <div class="name-row">
+                                    <h2 id="patientFullName">Select a Patient</h2>
+                                    <span class="badge badge-twin" id="twinIdBadge">Twin-Offline</span>
+                                    <span class="badge badge-risk" id="twinRiskBadge">Normal</span>
+                                </div>
+                                <div class="details-row">
+                                    <span id="patientDemographics"><i class="fa-solid fa-venus-mars"></i> -- | <i class="fa-solid fa-cake-candles"></i> -- yrs</span>
+                                    <span id="patientLocation"><i class="fa-solid fa-location-dot"></i> --</span>
+                                    <span id="pairedDeviceTag"><i class="fa-solid fa-satellite-dish"></i> CGM: Unpaired</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="twin-quick-stats">
+                            <div class="quick-stat">
+                                <span class="stat-label">Baseline HbA1c</span>
+                                <span class="stat-value" id="statBaselineHba1c">--%</span>
+                            </div>
+                            <div class="quick-stat">
+                                <span class="stat-label">Target Range</span>
+                                <span class="stat-value highlight-green" id="statTargetRange">70 - 180 mg/dL</span>
+                            </div>
+                            <div class="quick-stat">
+                                <span class="stat-label">Sens. (ISF)</span>
+                                <span class="stat-value" id="statISF">-- mg/dL/U</span>
+                            </div>
+                            <div class="quick-stat">
+                                <span class="stat-label">Carb Ratio (ICR)</span>
+                                <span class="stat-value" id="statICR">-- g/U</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- REAL-TIME TELEMETRY & ML METRICS CARDS -->
+                    <section class="metrics-grid">
+                        <!-- Card 1: Current Glucose -->
+                        <div class="metric-card" id="cardCurrentGlucose">
+                            <div class="card-top">
+                                <span class="card-title"><i class="fa-solid fa-droplet"></i> Current Interstitial Glucose</span>
+                                <span class="trend-icon" id="glucoseTrendIcon"><i class="fa-solid fa-arrow-right"></i></span>
+                            </div>
+                            <div class="metric-hero">
+                                <span class="hero-number" id="metricCurrentGlucose">--</span>
+                                <span class="hero-unit">mg/dL</span>
+                            </div>
+                            <div class="card-footer-meta">
+                                <span id="glucoseTrendText">Stable trend</span>
+                                <span class="timestamp-tag" id="metricRecordedAt">--:--:--</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: AI Predicted Glucose (30m) -->
+                        <div class="metric-card card-ai-glow" id="cardPredictedGlucose">
+                            <div class="card-top">
+                                <span class="card-title"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 30-Min Forecast (XGBoost)</span>
+                                <span class="badge badge-ai" id="forecastDeltaBadge">+0.0 mg/dL</span>
+                            </div>
+                            <div class="metric-hero">
+                                <span class="hero-number highlight-blue" id="metricPredictedGlucose">--</span>
+                                <span class="hero-unit">mg/dL</span>
+                            </div>
+                            <div class="card-footer-meta">
+                                <span>95% CI: <strong id="metricConfidenceBand">[-- - --]</strong> mg/dL</span>
+                                <span class="timestamp-tag">t + 30 min</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Time-in-Range (TIR) -->
+                        <div class="metric-card" id="cardTIR">
+                            <div class="card-top">
+                                <span class="card-title"><i class="fa-solid fa-bullseye"></i> Time In Range (TIR)</span>
+                                <span class="badge badge-normal" id="tirBadge">--%</span>
+                            </div>
+                            <div class="metric-hero">
+                                <span class="hero-number" id="metricTIR">--%</span>
+                                <span class="hero-unit">TIR</span>
+                            </div>
+                            <div class="card-footer-meta">
+                                <span>Target: 70 - 180 mg/dL</span>
+                                <span>Est. HbA1c: <strong id="metricGMI">--%</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Wearable Physiological Telemetry -->
+                        <div class="metric-card" id="cardWearable">
+                            <div class="card-top">
+                                <span class="card-title"><i class="fa-solid fa-microchip"></i> Wearable Sensors (Empatica)</span>
+                                <span class="badge badge-active" id="wearableStatusBadge">Live</span>
+                            </div>
+                            <div class="wearable-readings-row">
+                                <div class="wearable-item">
+                                    <span class="w-label"><i class="fa-solid fa-heart"></i> HR</span>
+                                    <span class="w-value" id="metricHeartRate">-- <small>BPM</small></span>
+                                </div>
+                                <div class="wearable-item">
+                                    <span class="w-label"><i class="fa-solid fa-temperature-half"></i> Temp</span>
+                                    <span class="w-value" id="metricSkinTemp">-- <small>°C</small></span>
+                                </div>
+                                <div class="wearable-item">
+                                    <span class="w-label"><i class="fa-solid fa-bolt"></i> GSR</span>
+                                    <span class="w-value" id="metricGSR">-- <small>µS</small></span>
+                                </div>
+                                <div class="wearable-item">
+                                    <span class="w-label"><i class="fa-solid fa-brain"></i> Stress</span>
+                                    <span class="w-value" id="metricStressLevel">-- <small>/5</small></span>
+                                </div>
+                            </div>
+                            <div class="card-footer-meta">
+                                <span>Multimodal Wearable Synced</span>
+                                <span id="wearableSubjectTag">Device E4-W01</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- LIVE DATASET INGESTION & REAL-TIME ML INFERENCE STATUS BAR -->
+                    <section class="dataset-live-stream-bar" style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.25); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span class="status-dot pulsating"></span>
+                            <div>
+                                <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #38bdf8; font-weight: 700;">
+                                    <i class="fa-solid fa-database"></i> Dynamic Dataset Stream Ingestion:
+                                </span>
+                                <strong style="font-size: 13px; color: #fff; margin-left: 6px;" id="liveDatasetSourceText">Kaggle GlucoBench + Empatica E4</strong>
+                                <span style="font-size: 11px; color: #94a3b8; margin-left: 8px; background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 4px;" id="liveDatasetRowText">Row -- / --</span>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 16px; font-size: 12px;">
+                            <div>
+                                <span style="color: #94a3b8;">Lag-1:</span>
+                                <strong style="color: #cbd5e1;" id="liveLag1Text">-- mg/dL</strong>
+                            </div>
+                            <div>
+                                <span style="color: #94a3b8;">Roll-1h:</span>
+                                <strong style="color: #cbd5e1;" id="liveRollMeanText">-- mg/dL</strong>
+                            </div>
+                            <div>
+                                <span style="color: #94a3b8;">XGBoost 30m Forecast:</span>
+                                <strong style="color: #38bdf8;" id="livePredDeltaText">-- mg/dL</strong>
+                            </div>
+                            <span class="badge badge-ai" style="padding: 3px 9px; font-size: 11px;"><i class="fa-solid fa-microchip"></i> 1.84ms Inference</span>
+                        </div>
+                    </section>
+
+                    <!-- ADA CLINICAL RISK ALERT BANNER -->
+                    <section class="clinical-alert-banner alert-normal" id="clinicalAlertBanner">
+                        <div class="alert-icon-wrap" id="alertIcon">
+                            <i class="fa-solid fa-shield-heart"></i>
+                        </div>
+                        <div class="alert-body">
+                            <div class="alert-title-row">
+                                <h4 id="alertHeadline">Optimal Glycemic State</h4>
+                                <span class="badge badge-alert" id="alertCodeTag">IN_TARGET_RANGE</span>
+                            </div>
+                            <p class="alert-msg" id="alertMessageText">Blood glucose is stable within ADA clinical target guidelines (70 - 180 mg/dL).</p>
+                            <p class="alert-rec" id="alertRecommendationText"><i class="fa-solid fa-hand-holding-medical"></i> <strong>Recommendation:</strong> Continue routine monitoring schedule.</p>
+                        </div>
+                    </section>
+
+                    <!-- CGM CHART -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-title">
+                                <i class="fa-solid fa-chart-line"></i>
+                                <h3>Continuous Glucose Telemetry & 30-Min AI Prediction</h3>
+                            </div>
+                            <div class="chart-legend-custom">
+                                <span class="legend-chip chip-history"><span class="dot"></span> Historical CGM</span>
+                                <span class="legend-chip chip-forecast"><span class="dot"></span> AI Forecast (30m)</span>
+                                <span class="legend-chip chip-target"><span class="dot"></span> Target Range (70-180)</span>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="cgmChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- DYNAMIC ML PREDICTOR FROM DATASETS (STUDIO) -->
+                    <div class="chart-card dataset-predictor-card" id="datasetPredictorStudio" style="margin-top: 18px; border: 1px solid rgba(14, 165, 233, 0.4); box-shadow: 0 0 24px rgba(14, 165, 233, 0.08);">
+                        <div class="chart-header" style="background: rgba(14, 165, 233, 0.07); padding: 14px 18px; border-bottom: 1px solid rgba(14, 165, 233, 0.2);">
+                            <div class="chart-title">
+                                <i class="fa-solid fa-microchip" style="color: #38bdf8; font-size: 18px;"></i>
+                                <div>
+                                    <h3 style="font-size: 16px; font-weight: 700; color: #fff;">Dynamic ML Predictor from Datasets</h3>
+                                    <p style="font-size: 11.5px; color: #94a3b8; margin: 0;">Ingest authentic records from Kaggle GlucoBench (15,731 CGM readings) & Empatica E4 to predict 30-min trajectory</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <span class="badge badge-ai" style="padding: 4px 10px; font-size: 11px;"><i class="fa-solid fa-bolt"></i> Champion XGBoost Regressor</span>
+                                <button class="btn btn-outline btn-sm" id="btnRandomDatasetSample" onclick="fetchDatasetPrediction({random: true})" title="Sample random row from 15,731 dataset rows">
+                                    <i class="fa-solid fa-shuffle"></i> 🎲 Random Row
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style="padding: 16px 20px;">
+                            <!-- Scenario Presets Bar -->
+                            <div style="margin-bottom: 14px;">
+                                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #38bdf8; font-weight: 700; margin-bottom: 6px;">
+                                    <i class="fa-solid fa-vial"></i> Select Real Dataset Clinical Scenarios:
+                                </div>
+                                <div class="dataset-preset-chips" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    <button class="btn btn-glass btn-sm active" onclick="loadDatasetScenario('postprandial_spike', this)">
+                                        <i class="fa-solid fa-utensils"></i> Postprandial Surge (U001)
+                                    </button>
+                                    <button class="btn btn-glass btn-sm" onclick="loadDatasetScenario('exercise_stress', this)">
+                                        <i class="fa-solid fa-person-running"></i> Exercise & Stress (E4 Wearable)
+                                    </button>
+                                    <button class="btn btn-glass btn-sm" onclick="loadDatasetScenario('euglycemic_target', this)">
+                                        <i class="fa-solid fa-bullseye"></i> Stable Target Euglycemia (U002)
+                                    </button>
+                                    <button class="btn btn-glass btn-sm" onclick="loadDatasetScenario('hyperglycemia_threshold', this)">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> Hyperglycemia Alert (>180)
+                                    </button>
+                                    <button class="btn btn-glass btn-sm" onclick="loadDatasetScenario('boundary_low', this)">
+                                        <i class="fa-solid fa-shield-virus"></i> Boundary Hypo (70 mg/dL)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Row Search & Custom Controls Bar -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px; font-size: 12px;">
+                                    <span style="color: #94a3b8;"><i class="fa-solid fa-table"></i> Dataset Row Index:</span>
+                                    <input type="number" id="datasetRowInput" value="715" min="1" max="15731" style="width: 85px; padding: 4px 8px; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 4px; font-size: 12px; font-weight: 600;">
+                                    <span style="color: #64748b;">/ 15,731 rows</span>
+                                    <button class="btn btn-outline btn-sm" onclick="loadDatasetRowFromInput()">
+                                        <i class="fa-solid fa-arrow-down-long"></i> Ingest Row
+                                    </button>
+                                </div>
+
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="font-size: 11px; color: #94a3b8;" id="datasetRowProvenanceText">
+                                        <i class="fa-solid fa-database"></i> Ingested: Kaggle GlucoBench (Row 715 / Subject U001)
+                                    </span>
+                                    <button class="btn btn-primary btn-sm" id="btnExecuteDatasetPrediction" onclick="runDatasetPrediction()" style="background: linear-gradient(135deg, #0ea5e9, #0d9488); font-weight: 700; box-shadow: 0 0 12px rgba(14, 165, 233, 0.4);">
+                                        <i class="fa-solid fa-bolt"></i> Run Model Prediction
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 2-Column Inference Layout: Inputs on Left, Output & Validation on Right -->
+                            <div style="display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px;">
+                                
+                                <!-- LEFT: 19 Features Extracted from Dataset Row -->
+                                <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                        <strong style="font-size: 12.5px; color: #cbd5e1;">
+                                            <i class="fa-solid fa-list-check" style="color: #38bdf8;"></i> 19 Multimodal Ingestion Features:
+                                        </strong>
+                                        <span style="font-size: 11px; color: #94a3b8;">CGM + Empatica E4 + Synthea EHR</span>
+                                    </div>
+
+                                    <div class="dataset-features-grid" id="datasetFeaturesGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-height: 260px; overflow-y: auto;">
+                                        <!-- Injected dynamically by JS -->
+                                    </div>
+
+                                    <!-- Tweak Overrides Panel -->
+                                    <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.06);">
+                                        <div style="font-size: 11.5px; color: #94a3b8; margin-bottom: 6px; display: flex; justify-content: space-between;">
+                                            <span><i class="fa-solid fa-sliders"></i> What-If Clinical Overrides on Dataset Record:</span>
+                                            <span style="color: #38bdf8; cursor: pointer;" onclick="resetDatasetOverrides()"><i class="fa-solid fa-rotate-left"></i> Reset</span>
+                                        </div>
+                                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                            <div style="display: flex; align-items: center; gap: 6px; font-size: 11px;">
+                                                <span style="color: #cbd5e1;">Carbs (g):</span>
+                                                <input type="number" id="overrideCarbs" placeholder="0" style="width: 55px; padding: 3px 6px; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 4px; font-size: 11px;">
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 6px; font-size: 11px;">
+                                                <span style="color: #cbd5e1;">Bolus (U):</span>
+                                                <input type="number" id="overrideBolus" placeholder="0" step="0.5" style="width: 55px; padding: 3px 6px; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 4px; font-size: 11px;">
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 6px; font-size: 11px;">
+                                                <span style="color: #cbd5e1;">Heart Rate:</span>
+                                                <input type="number" id="overrideHR" placeholder="Auto" style="width: 55px; padding: 3px 6px; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 4px; font-size: 11px;">
+                                            </div>
+                                            <button class="btn btn-glass btn-sm" onclick="runDatasetPrediction(true)" style="padding: 3px 10px; font-size: 11px;">
+                                                <i class="fa-solid fa-rotate"></i> Re-Calculate ML Output
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- RIGHT: Dynamic Output & Validation Panel -->
+                                <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between;">
+                                    <div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                            <strong style="font-size: 12.5px; color: #cbd5e1;">
+                                                <i class="fa-solid fa-chart-line" style="color: #38bdf8;"></i> AI Forecast vs Ground Truth:
+                                            </strong>
+                                            <span class="badge badge-normal" id="datasetClarkeBadge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 11px;">
+                                                Clarke Zone A
+                                            </span>
+                                        </div>
+
+                                        <!-- Side-by-side Hero Comparison -->
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                                            <!-- AI Prediction -->
+                                            <div style="background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.3); border-radius: 8px; padding: 10px; text-align: center;">
+                                                <div style="font-size: 11px; color: #38bdf8; font-weight: 600; text-transform: uppercase;">
+                                                    <i class="fa-solid fa-wand-magic-sparkles"></i> AI Predicted (30m)
+                                                </div>
+                                                <div style="font-size: 26px; font-weight: 800; color: #fff; margin: 4px 0;" id="datasetPredValue">
+                                                    181.8 <small style="font-size: 12px; color: #94a3b8;">mg/dL</small>
+                                                </div>
+                                                <div style="font-size: 11px; color: #94a3b8;" id="datasetConfidenceBandText">
+                                                    95% CI: [176.9 - 186.7]
+                                                </div>
+                                            </div>
+
+                                            <!-- Ground Truth Actual -->
+                                            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 10px; text-align: center;">
+                                                <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase;">
+                                                    <i class="fa-solid fa-database"></i> Dataset Ground Truth
+                                                </div>
+                                                <div style="font-size: 26px; font-weight: 800; color: #34d399; margin: 4px 0;" id="datasetGroundTruthValue">
+                                                    181.4 <small style="font-size: 12px; color: #94a3b8;">mg/dL</small>
+                                                </div>
+                                                <div style="font-size: 11px; color: #94a3b8;" id="datasetResidualErrorText">
+                                                    Residual Error: <strong>0.4 mg/dL</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Clinical Risk & Action -->
+                                        <div id="datasetRiskAlertBox" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; padding: 10px; margin-bottom: 10px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                                <strong style="color: #fbbf24; font-size: 12px;" id="datasetAlertHeadline">Hyperglycemia Alert Threshold</strong>
+                                                <span class="badge badge-alert" id="datasetAlertCodeBadge" style="font-size: 10px;">HYPERGLYCEMIA</span>
+                                            </div>
+                                            <p style="font-size: 11px; color: #cbd5e1; margin: 0 0 6px;" id="datasetAlertMessage">Postprandial peak detected exceeding ADA 180 mg/dL target threshold.</p>
+                                            <div style="font-size: 11px; color: #38bdf8;" id="datasetAlertRecommendation">
+                                                <i class="fa-solid fa-hand-holding-medical"></i> <strong>Protocol:</strong> Hydrate with water. Verify active insulin on board.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #94a3b8; border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 8px;">
+                                        <span><i class="fa-solid fa-stopwatch"></i> Latency: <strong style="color: #38bdf8;" id="datasetLatencyText">1.84 ms</strong></span>
+                                        <span><i class="fa-solid fa-microchip"></i> Model: XGBoost Regressor</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =======================================================
+                     VIEW 4: "WHAT-IF" SIMULATION SANDBOX
+                     ======================================================= -->
+                <div class="app-view hidden-view" id="view-simulation">
+                    <div class="view-header-title">
+                        <div>
+                            <h2><i class="fa-solid fa-sliders"></i> Digital Twin "What-If" Simulation Sandbox</h2>
+                            <p>Simulate clinical perturbations (meals, insulin, exercise, stress) on the in-silico twin</p>
+                        </div>
+                        <span class="badge badge-twin" style="font-size:12px; padding:4px 10px;">In-Silico Trial</span>
+                    </div>
+
+                    <!-- Active Simulation Patient Bar -->
+                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(14, 165, 233, 0.15); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 18px;">
+                                <i class="fa-solid fa-person-burst"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 700; color: #ffffff; font-size: 14px;" id="simPatientName">Active Twin: Initializing...</div>
+                                <div style="font-size: 11px; color: #94a3b8;" id="simPatientMeta">ISF: 40 mg/dL/U | ICR: 12 g/U | Target: 70-180 mg/dL</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-primary btn-sm" onclick="switchPlatformView('predictions')">
+                                <i class="fa-solid fa-chart-line"></i> View Prediction Curve
+                            </button>
+                            <a href="/metabolic-twin" class="btn btn-glass btn-sm" style="text-decoration:none;">
+                                <i class="fa-solid fa-cube"></i> Whole-Body Twin
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- DIGITAL TWIN WHAT-IF SIMULATION SANDBOX -->
+                    <section class="simulation-sandbox-card" id="simulationSandboxCard" style="display:block;">
+                        <div class="sandbox-header">
+                            <div class="sandbox-title">
+                                <i class="fa-solid fa-sliders"></i>
+                                <h3>Digital Twin "What-If" Clinical Intervention Sandbox</h3>
+                            </div>
+                            <p class="sandbox-subtitle">Simulate clinical and lifestyle perturbations on this patient's digital twin to evaluate real-time physiological response & predictive risk.</p>
+                        </div>
+
+                        <div class="sandbox-actions-grid">
+                            <!-- Action 1: Meal -->
+                            <div class="sandbox-action-box">
+                                <div class="action-title"><i class="fa-solid fa-utensils"></i> Meal Ingestion</div>
+                                <div class="action-inputs">
+                                    <button class="btn btn-sandbox" data-action="MEAL" data-carbs="20">Light Snack (20g)</button>
+                                    <button class="btn btn-sandbox" data-action="MEAL" data-carbs="45">Standard Meal (45g)</button>
+                                    <button class="btn btn-sandbox" data-action="MEAL" data-carbs="75">High Carb (75g)</button>
+                                </div>
+                            </div>
+
+                            <!-- Action 2: Insulin -->
+                            <div class="sandbox-action-box">
+                                <div class="action-title"><i class="fa-solid fa-syringe"></i> Insulin Bolus</div>
+                                <div class="action-inputs">
+                                    <button class="btn btn-sandbox" data-action="INSULIN" data-units="2">Correction (2U)</button>
+                                    <button class="btn btn-sandbox" data-action="INSULIN" data-units="4">Meal Bolus (4U)</button>
+                                    <button class="btn btn-sandbox" data-action="INSULIN" data-units="7">High Dose (7U)</button>
+                                </div>
+                            </div>
+
+                            <!-- Action 3: Exercise -->
+                            <div class="sandbox-action-box">
+                                <div class="action-title"><i class="fa-solid fa-person-running"></i> Physical Activity</div>
+                                <div class="action-inputs">
+                                    <button class="btn btn-sandbox" data-action="EXERCISE" data-steps="1500" data-intensity="low">Brisk Walk</button>
+                                    <button class="btn btn-sandbox" data-action="EXERCISE" data-steps="3500" data-intensity="medium">Cardio Aerobic</button>
+                                    <button class="btn btn-sandbox" data-action="EXERCISE" data-steps="5000" data-intensity="high">HIIT Session</button>
+                                </div>
+                            </div>
+
+                            <!-- Action 4: Stress -->
+                            <div class="sandbox-action-box">
+                                <div class="action-title"><i class="fa-solid fa-head-side-virus"></i> Sympathetic Stress</div>
+                                <div class="action-inputs">
+                                    <button class="btn btn-sandbox" data-action="STRESS" data-stress="2">Mild Tension</button>
+                                    <button class="btn btn-sandbox" data-action="STRESS" data-stress="4">Acute Stress</button>
+                                    <button class="btn btn-sandbox" data-action="STRESS" data-stress="5">Severe Crisis</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="sandbox-result-banner hidden" id="sandboxResultBanner">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span id="sandboxResultText">Event applied successfully.</span>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- =======================================================
+                     VIEW 5: ALERTS & RISK EVENTS MONITORING CENTER (Image 2)
+                     ======================================================= -->
+                <div class="app-view hidden-view" id="view-alerts">
+                    <div class="view-header-title">
+                        <div>
+                            <h2><i class="fa-solid fa-bell"></i> Medical Vital Signs Alert Monitoring Center</h2>
+                            <p>Real-time detection and clinical handling of adverse glycemic and cardiac events</p>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="loadAlertsView()">
+                            <i class="fa-solid fa-rotate"></i> Refresh Data
+                        </button>
+                    </div>
+
+                    <!-- 4 Alert Summary Cards (1-to-1 match with Image 2) -->
+                    <div class="overview-kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-label">Total Alerts</div>
+                            <div class="kpi-num" id="alertStatTotal">116</div>
+                            <div style="font-size:11px; margin-top:4px;">
+                                <span style="color:#f87171;">● Level 2: 2</span> &nbsp;
+                                <span style="color:#fbbf24;">● Level 1: 114</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Pending Alerts</div>
+                            <div class="kpi-num" style="color:#f87171;" id="alertStatPending">110</div>
+                            <div class="kpi-meta" style="color:#94a3b8;">Vs 10 mins ago +78</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Confirmed Alerts</div>
+                            <div class="kpi-num" style="color:#fbbf24;" id="alertStatConfirmed">3</div>
+                            <div class="kpi-meta">Confirmation Rate: 2.7%</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Resolved Alerts</div>
+                            <div class="kpi-num" style="color:#34d399;" id="alertStatResolved">3</div>
+                            <div class="kpi-meta">Resolution Rate: 2.6%</div>
+                        </div>
+                    </div>
+
+                    <!-- Alert Center Filter & Table Layout -->
+                    <div class="alert-center-layout">
+                        <!-- Left Filter Criteria -->
+                        <div class="alert-filters-panel">
+                            <div class="filter-group-title"><i class="fa-solid fa-filter"></i> Filter Criteria</div>
+                            
+                            <div style="font-size:11px; color:#94a3b8; margin-bottom:6px;">Alert Level</div>
+                            <div class="filter-pills-row">
+                                <button class="filter-pill-btn active" data-alert-level="all" onclick="filterAlerts('level', 'all', this)">All</button>
+                                <button class="filter-pill-btn pill-warning" data-alert-level="level1" onclick="filterAlerts('level', 'level1', this)">Level 1 (Warning)</button>
+                                <button class="filter-pill-btn pill-critical" data-alert-level="level2" onclick="filterAlerts('level', 'level2', this)">Level 2 (Critical)</button>
+                            </div>
+
+                            <div style="font-size:11px; color:#94a3b8; margin-bottom:6px;">Handling Status</div>
+                            <div class="filter-pills-row">
+                                <button class="filter-pill-btn active" data-alert-status="all" onclick="filterAlerts('status', 'all', this)">All</button>
+                                <button class="filter-pill-btn" data-alert-status="pending" onclick="filterAlerts('status', 'pending', this)">Pending</button>
+                                <button class="filter-pill-btn" data-alert-status="confirmed" onclick="filterAlerts('status', 'confirmed', this)">Confirmed</button>
+                                <button class="filter-pill-btn" data-alert-status="resolved" onclick="filterAlerts('status', 'resolved', this)">Resolved</button>
+                            </div>
+
+                            <div style="font-size:11px; color:#94a3b8; margin-bottom:6px;">Time Range</div>
+                            <select class="top-cohort-select" style="width:100%; padding:6px 10px; background:#0f172a; border:1px solid var(--border-color); border-radius:6px;">
+                                <option>Last 12 Hours</option>
+                                <option>Last 24 Hours</option>
+                                <option>All Time</option>
+                            </select>
+                        </div>
+
+                        <!-- Right Alert Details List Table -->
+                        <div class="data-table-wrap">
+                            <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                                <strong style="font-size:13px; color:#fff;"><i class="fa-solid fa-list-check"></i> Alert Details List</strong>
+                                <span style="font-size:11px; color:#94a3b8;" id="alertTableCountText">Total 116 records</span>
+                            </div>
+                            <div style="max-height: 420px; overflow-y: auto;">
+                                <table class="data-table-custom">
+                                    <thead>
+                                        <tr>
+                                            <th>Patient ID</th>
+                                            <th>Alert Time</th>
+                                            <th>Alert Type</th>
+                                            <th>Alert Level</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="alertTableBody">
+                                        <tr><td colspan="6" style="text-align:center; padding:20px; color:#94a3b8;">Loading alert records...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =======================================================
+                     VIEW 6: WEARABLE MONITORING (Image 3)
+                     ======================================================= -->
+                <div class="app-view hidden-view" id="view-wearables">
+                    <div class="view-header-title">
+                        <div>
+                            <h2><i class="fa-solid fa-microchip"></i> Empatica E4 Synchronized Wearable Telemetry</h2>
+                            <p>Multi-channel physiological IoT streams (Heart Rate, Skin Temp, GSR/EDA, Stress)</p>
+                        </div>
+                        <span class="badge badge-active" style="font-size:12px; padding:4px 10px;">Empatica E4 Connected</span>
+                    </div>
+
+                    <!-- 4 Live Sensor KPI Cards -->
+                    <div class="overview-kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-label"><i class="fa-solid fa-heart" style="color:#ef4444;"></i> Heart Rate</div>
+                            <div class="kpi-num" style="color:#ef4444;" id="wearKpiHeartRate">72 <small style="font-size:13px; color:#94a3b8;">BPM</small></div>
+                            <div class="kpi-meta"><i class="fa-solid fa-check"></i> Normal Sinus Rhythm</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label"><i class="fa-solid fa-temperature-half" style="color:#f59e0b;"></i> Skin Temperature</div>
+                            <div class="kpi-num" style="color:#f59e0b;" id="wearKpiTemp">34.2 <small style="font-size:13px; color:#94a3b8;">°C</small></div>
+                            <div class="kpi-meta">Peripheral Perfusion Stable</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label"><i class="fa-solid fa-bolt" style="color:#06b6d4;"></i> GSR / EDA</div>
+                            <div class="kpi-num" style="color:#06b6d4;" id="wearKpiGSR">3.80 <small style="font-size:13px; color:#94a3b8;">µS</small></div>
+                            <div class="kpi-meta">Basal Sympathetic Conductance</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label"><i class="fa-solid fa-brain" style="color:#a855f7;"></i> Autonomic Stress Index</div>
+                            <div class="kpi-num" style="color:#a855f7;" id="wearKpiStress">1 <small style="font-size:13px; color:#94a3b8;">/ 5</small></div>
+                            <div class="kpi-meta">Parasympathetic Dominant</div>
+                        </div>
+                    </div>
+
+                    <!-- Wearable Signals Canvas -->
+                    <div class="chart-card" style="margin-bottom: 16px;">
+                        <div class="chart-header">
+                            <div class="chart-title">
+                                <i class="fa-solid fa-wave-square"></i>
+                                <h3>Synchronized Wearable Physiological Signals (Empatica E4)</h3>
+                            </div>
+                            <div class="chart-legend-custom">
+                                <span class="legend-chip chip-hr"><span class="dot"></span> Heart Rate (BPM)</span>
+                                <span class="legend-chip chip-temp"><span class="dot"></span> Skin Temp (°C)</span>
+                                <span class="legend-chip chip-gsr"><span class="dot"></span> GSR (µS)</span>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-wrap">
+                            <canvas id="wearableChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =======================================================
+                     VIEW 7: EHR & CLINICAL HISTORY (Image 4)
+                     ======================================================= -->
+                <div class="app-view hidden-view" id="view-ehr">
+                    <div class="view-header-title">
+                        <div>
+                            <h2><i class="fa-solid fa-file-medical"></i> EHR Clinical Medical History & Prescriptions</h2>
+                            <p>Synthea HL7 C-CDA Medical Records, SNOMED-CT Coded Diagnoses & RxNorm Prescriptions</p>
+                        </div>
+                        <span class="badge badge-count" style="font-size:12px; padding:4px 10px;">HL7 C-CDA Validated</span>
+                    </div>
+
+                    <!-- EHR Clinical Lab Metrics KPI Grid -->
+                    <div class="overview-kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-label"><i class="fa-solid fa-dna"></i> Baseline Glycated HbA1c</div>
+                            <div class="kpi-num" style="color:#38bdf8;" id="ehrKpiHba1c">--%</div>
+                            <div class="kpi-meta"><i class="fa-solid fa-check"></i> Laboratory Certified (Synthea)</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label"><i class="fa-solid fa-droplet"></i> Fasting Blood Glucose</div>
+                            <div class="kpi-num" style="color:#34d399;" id="ehrKpiFbg">126 <small style="font-size:13px; color:#94a3b8;">mg/dL</small></div>
+                            <div class="kpi-meta">Impaired Fasting Glucose</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label"><i class="fa-solid fa-filter"></i> Estimated GFR (eGFR)</div>
+                            <div class="kpi-num" style="color:#ffffff;">88 <small style="font-size:13px; color:#94a3b8;">mL/min</small></div>
+                            <div class="kpi-meta"><i class="fa-solid fa-check"></i> Stage 1 / Normal Renal Function</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label"><i class="fa-solid fa-book-medical"></i> Diagnosed Conditions</div>
+                            <div class="kpi-num" style="color:#fbbf24;" id="ehrKpiConditionsCount">0</div>
+                            <div class="kpi-meta">SNOMED-CT Coded Diagnoses</div>
+                        </div>
+                    </div>
+
+                    <!-- MEDICAL HISTORY CARD -->
+                    <section class="medical-history-card" id="medicalHistoryCard" style="display:block;">
+                        <div class="history-card-header" id="toggleHistoryBtn" style="cursor:default;">
+                            <div class="header-left">
+                                <i class="fa-solid fa-notes-medical"></i>
+                                <h4>EHR Medical Record & Diagnoses</h4>
+                                <span class="badge badge-count" id="conditionsCountBadge">0 Conditions</span>
+                                <span class="badge badge-count" id="medicationsCountBadge">0 Medications</span>
+                            </div>
+                        </div>
+                        <div class="history-content-drawer" id="historyDrawer" style="display:block;">
+                            <div class="history-grid">
+                                <div class="history-col">
+                                    <h5><i class="fa-solid fa-stethoscope"></i> Diagnosed Conditions (SNOMED-CT)</h5>
+                                    <ul class="clinical-tags-list" id="conditionsList">
+                                        <li class="muted-text">None logged</li>
+                                    </ul>
+                                </div>
+                                <div class="history-col">
+                                    <h5><i class="fa-solid fa-pills"></i> Prescription History (RxNorm)</h5>
+                                    <ul class="clinical-tags-list" id="medicationsList">
+                                        <li class="muted-text">None logged</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- =======================================================
+                     VIEW 8: DATA & MACHINE LEARNING MODELS (Image 1)
+                     ======================================================= -->
+                <div class="app-view hidden-view" id="view-models">
+                    <div class="view-header-title">
+                        <div>
+                            <h2><i class="fa-solid fa-database"></i> Machine Learning Architecture & Dataset Health</h2>
+                            <p>Champion XGBoost cross-subject benchmarks on held-out test cohort U009-U010</p>
+                        </div>
+                        <span class="badge badge-ai" style="font-size:12px; padding:4px 10px;">XGBoost Regressor</span>
+                    </div>
+
+                    <!-- 3 Model Metrics Cards (Image 1 style) -->
+                    <div class="overview-kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-label">Champion R² Score</div>
+                            <div class="kpi-num" style="color:#38bdf8;">0.9873</div>
+                            <div class="kpi-meta"><i class="fa-solid fa-check"></i> High Variance Explained</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">RMSE / MAE Error</div>
+                            <div class="kpi-num" style="color:#34d399;">1.43 <small style="font-size:13px; color:#94a3b8;">mg/dL</small></div>
+                            <div class="kpi-meta">MAE: 1.05 mg/dL</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Clarke Clinical Grid</div>
+                            <div class="kpi-num" style="color:#34d399;">100.0%</div>
+                            <div class="kpi-meta">Zone A (Clinically Accurate)</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Total Serving Inferences</div>
+                            <div class="kpi-num" style="color:#ffffff;">14,167,121</div>
+                            <div class="kpi-meta">1.84ms Average Latency</div>
+                        </div>
+                    </div>
+
+                    <!-- Benchmark Table -->
+                    <div class="data-table-wrap" style="margin-bottom:16px;">
+                        <div style="padding:12px 16px; border-bottom:1px solid var(--border-color);">
+                            <strong style="color:#fff; font-size:13px;">Cross-Subject Benchmark Comparison (Held-Out Unseen Test Cohort)</strong>
+                        </div>
+                        <table class="data-table-custom">
+                            <thead>
+                                <tr>
+                                    <th>Model Architecture</th>
+                                    <th>RMSE (mg/dL)</th>
+                                    <th>MAE (mg/dL)</th>
+                                    <th>MAPE (%)</th>
+                                    <th>R² Score</th>
+                                    <th>Clarke Zone A</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>XGBoost Regressor</strong></td>
+                                    <td><strong style="color:#34d399;">1.432</strong></td>
+                                    <td>1.049</td>
+                                    <td>1.15%</td>
+                                    <td>0.9873</td>
+                                    <td><strong style="color:#34d399;">100.0%</strong></td>
+                                    <td><span class="status-badge-resolved">Champion</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Ridge Regression</td>
+                                    <td>1.494</td>
+                                    <td>1.059</td>
+                                    <td>1.15%</td>
+                                    <td>0.9861</td>
+                                    <td>100.0%</td>
+                                    <td><span class="status-badge-confirmed">Baseline</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Random Forest</td>
+                                    <td>4.736</td>
+                                    <td>2.289</td>
+                                    <td>2.26%</td>
+                                    <td>0.8607</td>
+                                    <td>100.0%</td>
+                                    <td><span class="status-badge-pending">Evaluated</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- =======================================================
+                     VIEW 9: SETTINGS & ACCESS CONTROLS
+                     ======================================================= -->
+                <div class="app-view hidden-view" id="view-settings">
+                    <div class="view-header-title">
+                        <div>
+                            <h2><i class="fa-solid fa-gear"></i> Platform Configuration & Access Controls</h2>
+                            <p>Clinical decision parameters, streaming frequency & privacy controls</p>
+                        </div>
+                    </div>
+
+                    <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:20px; max-width:700px; display:flex; flex-direction:column; gap:16px;">
+                        <div>
+                            <label style="font-size:12px; color:#94a3b8; font-weight:600; display:block; margin-bottom:6px;">ADA Clinical Target Glycemic Range (mg/dL):</label>
+                            <div style="display:flex; gap:12px; align-items:center;">
+                                <input type="number" value="70" id="inputTargetMin" class="meal-input" style="width:100px;">
+                                <span>to</span>
+                                <input type="number" value="180" id="inputTargetMax" class="meal-input" style="width:100px;">
+                                <button class="btn btn-outline btn-sm" id="btnSaveThresholds"><i class="fa-solid fa-floppy-disk"></i> Save Thresholds</button>
+                            </div>
+                            <span id="settingsSaveNotice" style="display:none; font-size:11px; color:#34d399; margin-top:6px;"><i class="fa-solid fa-circle-check"></i> ADA clinical target thresholds saved successfully!</span>
+                        </div>
+
+                        <div>
+                            <label style="font-size:12px; color:#94a3b8; font-weight:600; display:block; margin-bottom:6px;">Sensor Stream Replay Speed Multiplier:</label>
+                            <div style="display:flex; gap:8px;" id="speedMultiplierGroup">
+                                <button class="btn btn-primary btn-sm btn-speed active" data-speed="1">1x (Real-Time)</button>
+                                <button class="btn btn-outline btn-sm btn-speed" data-speed="2">2x</button>
+                                <button class="btn btn-outline btn-sm btn-speed" data-speed="5">5x</button>
+                                <button class="btn btn-outline btn-sm btn-speed" data-speed="10">10x Fast-Forward</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="font-size:12px; color:#94a3b8; font-weight:600; display:block; margin-bottom:6px;">Privacy & Anonymization Engine:</label>
+                            <p style="font-size:12px; color:#34d399;"><i class="fa-solid fa-circle-check"></i> Compliant with Digital Personal Data Protection (DPDP) Act 2023 & HIPAA Safe Harbor.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+
+        </div>
+
+    </div>
+    </div>
+
+    <!-- AI MODEL SPECIFICATIONS & LIMITATIONS MODAL -->
+    <div class="modal-overlay hidden" id="modelModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="m-title">
+                    <i class="fa-solid fa-brain"></i>
+                    <h3>Machine Learning Architecture & Clinical Limitations</h3>
+                </div>
+                <button class="btn-close" id="btnCloseModal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" id="modalBodyContent">
+                <div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading metadata...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

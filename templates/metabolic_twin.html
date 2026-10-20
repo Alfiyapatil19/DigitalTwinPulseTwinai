@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TWIN HEALTH | Whole Body Metabolic Digital Twin</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --bg-canvas: #09131d;
+            --tablet-bezel: #1b2838;
+            --tablet-screen-bg: #073b4c;
+            --card-bg: rgba(255, 255, 255, 0.96);
+            --card-text: #1a2734;
+            --card-subtext: #596d82;
+            --card-border: #e2e8f0;
+            --primary-blue: #0077b6;
+            --accent-teal: #0d9488;
+            --accent-cyan: #06b6d4;
+            --highlight-green: #10b981;
+            --highlight-amber: #f59e0b;
+            --highlight-red: #ef4444;
+            --font-head: 'Outfit', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: radial-gradient(circle at 50% 20%, #0d2836 0%, #06111a 70%, #02070c 100%);
+            color: #f1f5f9;
+            font-family: var(--font-body);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 24px 16px 40px;
+            overflow-x: hidden;
+        }
+
+        /* Top Bar Navigation & Controls */
+        .header-controls {
+            width: 100%;
+            max-width: 1360px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background: rgba(15, 29, 43, 0.65);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #38bdf8;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: rgba(56, 189, 248, 0.1);
+            transition: all 0.2s ease;
+        }
+        .back-link:hover {
+            background: rgba(56, 189, 248, 0.2);
+            color: #7dd3fc;
+        }
+
+        .patient-selector-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .patient-selector-wrap label {
+            font-size: 12px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .patient-select {
+            background: #0f2438;
+            color: #f8fafc;
+            border: 1px solid #1e3a5f;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 500;
+            outline: none;
+            cursor: pointer;
+        }
+        .patient-select:focus {
+            border-color: #38bdf8;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .live-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulseAnim 1.8s infinite;
+        }
+        @keyframes pulseAnim {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(1.3); }
+        }
+
+        .btn-stream {
+            background: linear-gradient(135deg, #0ea5e9, #0d9488);
+            border: none;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-stream:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+        }
+
+        /* HARDWARE STAGE LAYOUT */
+        .hardware-stage {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 28px;
+            max-width: 1420px;
+            width: 100%;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        /* 1. LEFT SMARTWATCH MOCKUP */
+        .watch-container {
+            flex-shrink: 0;
+            width: 160px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: floatWatch 4s ease-in-out infinite;
+        }
+        @keyframes floatWatch {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .watch-strap-top, .watch-strap-bottom {
+            width: 68px;
+            height: 38px;
+            background: #1f2732;
+            border-radius: 6px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+        }
+        .watch-body {
+            width: 136px;
+            height: 164px;
+            background: #0f141c;
+            border: 4px solid #2d3748;
+            border-radius: 34px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 12px rgba(14, 165, 233, 0.2);
+            padding: 14px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+        .watch-crown {
+            position: absolute;
+            right: -8px;
+            top: 45px;
+            width: 5px;
+            height: 22px;
+            background: #4a5568;
+            border-radius: 2px;
+        }
+        .watch-screen {
+            width: 100%;
+            height: 100%;
+            background: #05080e;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 8px 4px;
+        }
+        .watch-label {
+            font-size: 10px;
+            color: #94a3b8;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .watch-reading-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 4px;
+            margin: 2px 0;
+        }
+        .watch-reading {
+            font-family: var(--font-head);
+            font-size: 34px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1;
+        }
+        .watch-trend-arrow {
+            color: #10b981;
+            font-size: 20px;
+            font-weight: 900;
+        }
+        .watch-unit {
+            font-size: 10px;
+            color: #64748b;
+            font-weight: 600;
+        }
+        .watch-dots {
+            display: flex;
+            gap: 4px;
+            margin-top: 10px;
+        }
+        .watch-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #334155;
+        }
+        .watch-dot.active {
+            background: #38bdf8;
+            box-shadow: 0 0 6px #38bdf8;
+        }
+
+        /* 2. CENTER TABLET MOCKUP */
+        .tablet-frame {
+            flex: 1;
+            max-width: 1080px;
+            background: #0b1520;
+            border: 12px solid #1a2634;
+            border-radius: 36px;
+            box-shadow: 0 25px 60px -10px rgba(0,0,0,0.8), 0 0 35px rgba(13, 148, 136, 0.15);
+            overflow: hidden;
+            position: relative;
+        }
+        .tablet-camera-notch {
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 6px;
+            background: #0f1722;
+            border-radius: 4px;
+            z-index: 10;
+        }
+
+        /* TABLET INNER INTERFACE */
+        .tablet-screen {
+            background: #084357;
+            background: linear-gradient(175deg, #07384a 0%, #064052 45%, #053342 100%);
+            padding: 16px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            position: relative;
+        }
+
+        /* Tablet Banner */
+        .tablet-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            padding-bottom: 12px;
+        }
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .brand-logo i {
+            font-size: 24px;
+            color: #38bdf8;
+            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.6));
+        }
+        .brand-name {
+            font-family: var(--font-head);
+            font-size: 19px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: #ffffff;
+        }
+        .brand-name span {
+            color: #38bdf8;
+        }
+
+        .screen-title-center {
+            text-align: center;
+        }
+        .screen-title-center h2 {
+            font-family: var(--font-head);
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: #ffffff;
+        }
+        .screen-title-center p {
+            font-size: 10px;
+            color: #7dd3fc;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tablet-header-meta {
+            font-size: 11px;
+            color: #bae6fd;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .badge-status-subtle {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        /* 3-COLUMN METABOLIC GRID */
+        .metabolic-grid {
+            display: grid;
+            grid-template-columns: 290px 1fr 290px;
+            gap: 14px;
+            align-items: stretch;
+        }
+
+        /* Reusable Tablet Card */
+        .t-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.22);
+            display: flex;
+            flex-direction: column;
+            color: var(--card-text);
+        }
+        .t-card-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #1e293b;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .t-card-title i {
+            color: #0284c7;
+        }
+
+        /* Left Column Cards */
+        .left-col {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* CGM Chart Card */
+        .cgm-card {
+            flex: 1;
+        }
+        .chart-legend-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 9px;
+            margin-top: 4px;
+            color: #64748b;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .legend-line-actual {
+            width: 14px;
+            height: 2px;
+            background: #0284c7;
+        }
+        .legend-line-pred {
+            width: 14px;
+            height: 2px;
+            border-top: 2px dashed #0d9488;
+        }
+        .cgm-canvas-wrap {
+            height: 115px;
+            width: 100%;
+            position: relative;
+        }
+
+        /* Meal Logging Card */
+        .meal-card {
+            flex: 1;
+        }
+        .meal-input-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .meal-input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #1e293b;
+            outline: none;
+        }
+        .meal-input:focus {
+            border-color: #0284c7;
+        }
+        .btn-meal-enter {
+            background: #0284c7;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-meal-enter:hover {
+            background: #0369a1;
+        }
+
+        .meal-chips-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+        .meal-chip {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 3px 8px;
+            font-size: 10px;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .meal-chip:hover {
+            background: #e0f2fe;
+            border-color: #38bdf8;
+            color: #0369a1;
+        }
+
+        .meal-preview-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 6px 10px;
+        }
+        .meal-photo-wrap {
+            width: 44px;
+            height: 44px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 16px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .meal-meta-wrap {
+            flex: 1;
+        }
+        .meal-meta-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .meal-meta-desc {
+            font-size: 10px;
+            color: #64748b;
+        }
+        .mini-glycemic-curve {
+            width: 60px;
+            height: 24px;
+        }
+
+        /* Center Column: The Avatar Silhouette */
+        .center-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .avatar-viewport {
+            width: 100%;
+            height: 380px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hologram-pedestal {
+            position: absolute;
+            bottom: 4px;
+            width: 200px;
+            height: 28px;
+            background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.45) 0%, rgba(13, 148, 136, 0.15) 50%, transparent 80%);
+            border-radius: 50%;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+        }
+        .avatar-svg-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+        .avatar-svg-container svg {
+            max-height: 360px;
+            width: auto;
+            filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.35));
+        }
+
+        /* Physiological Callout Tags around the Avatar */
+        .organ-tag {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid #38bdf8;
+            color: #e0f2fe;
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 9px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            pointer-events: none;
+            transition: all 0.3s;
+        }
+        .organ-tag .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #38bdf8;
+            box-shadow: 0 0 6px #38bdf8;
+        }
+        .tag-brain { top: 38px; left: 16px; }
+        .tag-heart { top: 120px; right: 12px; }
+        .tag-liver { top: 165px; left: 12px; }
+        .tag-pancreas { top: 205px; right: 8px; }
+        .tag-muscle { bottom: 65px; left: 14px; }
+
+        /* Right Column Cards */
+        .right-col {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Circadian Clock Card */
+        .clock-card {
+            flex: 1;
+        }
+        .clock-content-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 4px;
+        }
+        .clock-dial-svg {
+            width: 72px;
+            height: 72px;
+            flex-shrink: 0;
+        }
+        .clock-meta {
+            flex: 1;
+        }
+        .sleep-score-number {
+            font-family: var(--font-head);
+            font-size: 20px;
+            font-weight: 800;
+            color: #0284c7;
+        }
+        .sleep-stage-tag {
+            font-size: 10px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .circadian-subtext {
+            font-size: 9px;
+            color: #64748b;
+        }
+
+        /* Activity Card */
+        .activity-card {
+            flex: 1;
+        }
+        .activity-metrics-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .act-metric-box {
+            text-align: left;
+        }
+        .act-label {
+            font-size: 9px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .act-value {
+            font-family: var(--font-head);
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .activity-curve-wrap {
+            height: 40px;
+            width: 100%;
+        }
+
+        /* Medication Card */
+        .meds-card {
+            flex: 1;
+        }
+        .med-item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 10px;
+            margin-top: 4px;
+        }
+        .med-info-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .med-icon-wrap {
+            color: #0284c7;
+            font-size: 14px;
+        }
+        .med-name-text {
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .med-time-text {
+            font-size: 9px;
+            color: #64748b;
+        }
+        .med-status-check {
+            color: #10b981;
+            font-size: 13px;
+        }
+
+        /* Bottom Center: Personalized AI Recommendations */
+        .recommendations-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 10px 16px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+            color: var(--card-text);
+        }
+        .rec-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        .rec-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: #f8fafc;
+            border-left: 3px solid #0284c7;
+            padding: 6px 10px;
+            border-radius: 0 6px 6px 0;
+        }
+        .rec-item.rec-alt {
+            border-left-color: #0d9488;
+        }
+        .rec-icon {
+            color: #0284c7;
+            font-size: 13px;
+            margin-top: 2px;
+        }
+        .rec-content h5 {
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 2px;
+        }
+        .rec-content p {
+            font-size: 10px;
+            color: #475569;
+            line-height: 1.35;
+        }
+
+        /* 3. RIGHT HARDWARE SENSOR MOCKUP */
+        .sensor-container {
+            flex-shrink: 0;
+            width: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            animation: floatSensor 4.5s ease-in-out infinite;
+        }
+        @keyframes floatSensor {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-7px); }
+        }
+
+        /* CGM Round Patch */
+        .cgm-patch {
+            width: 100px;
+            height: 100px;
+            background: #ffffff;
+            border-radius: 50%;
+            border: 3px solid #cbd5e1;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.5), inset 0 2px 6px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .cgm-patch-inner {
+            width: 58px;
+            height: 58px;
+            background: #f1f5f9;
+            border-radius: 50%;
+            border: 2px dashed #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #475569;
+            font-size: 18px;
+        }
+        .cgm-ble-dot {
+            position: absolute;
+            bottom: 12px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #0284c7;
+            box-shadow: 0 0 6px #0284c7;
+            animation: pulseAnim 2s infinite;
+        }
+
+        /* Applicator Tool */
+        .applicator-tool {
+            width: 44px;
+            height: 80px;
+            background: #e2e8f0;
+            border: 3px solid #94a3b8;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 4px;
+        }
+        .applicator-plunger {
+            width: 26px;
+            height: 14px;
+            background: #64748b;
+            border-radius: 4px;
+        }
+        .applicator-needle-guard {
+            width: 16px;
+            height: 18px;
+            background: #cbd5e1;
+            border-radius: 2px;
+        }
+
+        /* BOTTOM SUMMIT BANNER CALLOUT */
+        .summit-callout-banner {
+            max-width: 1080px;
+            width: 100%;
+            background: #fdf6ec;
+            border: 1px solid #fbd38d;
+            border-radius: 12px;
+            padding: 12px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: #7b341e;
+            font-size: 12px;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+        .summit-callout-banner i {
+            font-size: 20px;
+            color: #c05621;
+            flex-shrink: 0;
+        }
+        .summit-callout-banner strong {
+            color: #9c4221;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1280px) {
+            .watch-container, .sensor-container {
+                display: none;
+            }
+        }
+        @media (max-width: 992px) {
+            .metabolic-grid {
+                grid-template-columns: 1fr;
+            }
+            .rec-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP PRESENTATION NAVIGATION & MENU BAR -->
+    <header class="header-controls" style="background: rgba(11, 25, 38, 0.85); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 10px 18px;">
+        <div class="header-left" style="display: flex; align-items: center; gap: 18px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 34px; height: 34px; background: linear-gradient(135deg, #0ea5e9, #0d9488); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; box-shadow: 0 0 12px rgba(14, 165, 233, 0.5);">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <div>
+                    <div style="font-family: var(--font-head); font-weight: 800; font-size: 15px; color: #ffffff; letter-spacing: -0.3px;">PULSE-TWIN <span style="font-size: 10px; background: rgba(14, 165, 233, 0.2); color: #38bdf8; padding: 1px 5px; border-radius: 4px; border: 1px solid rgba(14, 165, 233, 0.4);">2026</span></div>
+                    <div style="font-size: 10px; color: #94a3b8;">Metabolic Clinical Platform</div>
+                </div>
+            </div>
+
+            <!-- Quick Navigation Menu Tabs -->
+            <nav style="display: flex; gap: 6px; margin-left: 12px; background: rgba(0, 0, 0, 0.25); padding: 4px 6px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.06);">
+                <a href="/" class="back-link" style="padding: 5px 12px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: #94a3b8; text-decoration: none;">
+                    <i class="fa-solid fa-hospital-user"></i> Clinical Dashboard
+                </a>
+                <a href="/metabolic-twin" style="padding: 5px 12px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #0ea5e9, #0d9488); color: #ffffff; text-decoration: none; font-weight: 600; box-shadow: 0 0 12px rgba(14, 165, 233, 0.4);">
+                    <i class="fa-solid fa-person-rays"></i> Whole-Body Twin (Active)
+                </a>
+                <a href="/#simulationSandboxCard" class="back-link" style="padding: 5px 12px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: #94a3b8; text-decoration: none;">
+                    <i class="fa-solid fa-sliders"></i> What-If Sandbox
+                </a>
+                <a href="/#clinicalAlertBanner" class="back-link" style="padding: 5px 12px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; background: transparent; color: #94a3b8; text-decoration: none;">
+                    <i class="fa-solid fa-bell"></i> Alerts <span style="background: #ef4444; color: #fff; font-size: 9px; padding: 1px 5px; border-radius: 10px; margin-left: 2px;">2</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="header-right" style="display: flex; align-items: center; gap: 14px;">
+            <div class="patient-selector-wrap" style="background: rgba(255, 255, 255, 0.04); padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <label for="patientSelect" style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 600;"><i class="fa-solid fa-user-tag"></i> Twin:</label>
+                <select id="patientSelect" class="patient-select" style="background: #091724; color: #f8fafc; border: 1px solid #1e3a5f; border-radius: 6px; padding: 4px 10px; font-size: 12px;">
+                    <!-- Populated dynamically -->
+                    <option value="1">Loading patients...</option>
+                </select>
+            </div>
+
+            <div class="live-pill" style="display: flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                <span class="pulse-dot"></span>
+                <span id="syncStatusText">Dynamic In-Silico Twin Active</span>
+            </div>
+
+            <button class="btn-stream" id="btnLiveTick" style="background: linear-gradient(135deg, #0ea5e9, #0d9488); border: none; color: white; font-weight: 600; font-size: 12px; padding: 7px 16px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 14px rgba(14, 165, 233, 0.35);">
+                <i class="fa-solid fa-play" id="tickIcon"></i> <span id="tickText">Auto-Stream Sensor</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- HARDWARE STAGE (Smartwatch + Tablet + CGM Sensor) -->
+    <div class="hardware-stage">
+        
+        <!-- LEFT: SMARTWATCH MOCKUP -->
+        <div class="watch-container">
+            <div class="watch-strap-top"></div>
+            <div class="watch-body">
+                <div class="watch-crown"></div>
+                <div class="watch-screen">
+                    <span class="watch-label">Glucose reading</span>
+                    <div class="watch-reading-row">
+                        <span class="watch-reading" id="watchGlucose">105</span>
+                        <span class="watch-trend-arrow" id="watchArrow">↗</span>
+                    </div>
+                    <span class="watch-unit">mg/dL</span>
+                    <div class="watch-dots">
+                        <span class="watch-dot active"></span>
+                        <span class="watch-dot"></span>
+                        <span class="watch-dot"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="watch-strap-bottom"></div>
+        </div>
+
+        <!-- CENTER: TABLET MOCKUP -->
+        <div class="tablet-frame">
+            <div class="tablet-camera-notch"></div>
+            <div class="tablet-screen">
+                
+                <!-- Tablet Header -->
+                <div class="tablet-header">
+                    <div class="brand-logo">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                        <div class="brand-name">TWIN <span>HEALTH</span></div>
+                    </div>
+
+                    <div class="screen-title-center">
+                        <h2>Metabolic Digital Twin</h2>
+                        <p>Whole Body Glucose Prediction AI Platform Interface</p>
+                    </div>
+
+                    <div class="tablet-header-meta">
+                        <span id="tabletPatientName">Alexandra16 Mosciski958</span>
+                        <span class="badge-status-subtle" id="tabletTwinId">PT-001</span>
+                    </div>
+                </div>
+
+                <!-- 3-Column Metabolic Grid -->
+                <div class="metabolic-grid">
+                    
+                    <!-- LEFT COLUMN -->
+                    <div class="left-col">
+                        
+                        <!-- Card 1: Continuous Glucose Monitoring -->
+                        <div class="t-card cgm-card">
+                            <div class="t-card-title">
+                                <span>Continuous Glucose Monitoring</span>
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+                            <div class="cgm-canvas-wrap">
+                                <canvas id="cgmCurveCanvas"></canvas>
+                            </div>
+                            <div class="chart-legend-row">
+                                <div class="legend-item"><span class="legend-line-actual"></span> Actual Glucose</div>
+                                <div class="legend-item"><span class="legend-line-pred"></span> AI Predicted</div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Meal Logging & Predicted Glycemic Response -->
+                        <div class="t-card meal-card">
+                            <div class="t-card-title">
+                                <span>Meal Logging & AI-Predicted Response</span>
+                                <i class="fa-solid fa-utensils"></i>
+                            </div>
+                            <div class="meal-input-row">
+                                <input type="text" id="mealInput" class="meal-input" placeholder="Enter food or carbs...">
+                                <button class="btn-meal-enter" id="btnMealEnter">Enter</button>
+                            </div>
+                            <div class="meal-chips-row">
+                                <span class="meal-chip" data-carbs="20">Snack (20g)</span>
+                                <span class="meal-chip" data-carbs="45">Chicken Quinoa (45g)</span>
+                                <span class="meal-chip" data-carbs="75">Pasta Feast (75g)</span>
+                            </div>
+                            <div class="meal-preview-box">
+                                <div class="meal-photo-wrap">
+                                    <i class="fa-solid fa-bowl-food"></i>
+                                </div>
+                                <div class="meal-meta-wrap">
+                                    <div class="meal-meta-title" id="activeMealTitle">Lunch: Grilled Chicken & Quinoa</div>
+                                    <div class="meal-meta-desc" id="activeMealDesc">45g carbs &bull; Predicted +18 mg/dL spike</div>
+                                </div>
+                                <canvas id="miniGlycemicCanvas" class="mini-glycemic-curve"></canvas>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- CENTER COLUMN: METABOLIC HUMAN AVATAR SILHOUETTE -->
+                    <div class="center-col">
+                        <div class="avatar-viewport">
+                            
+                            <!-- Pedestal -->
+                            <div class="hologram-pedestal"></div>
+
+                            <!-- High-Tech Holographic Avatar Silhouette -->
+                            <div class="avatar-svg-container">
+                                <svg viewBox="0 0 320 540" xmlns="http://www.w3.org/2000/svg">
+                                    <defs>
+                                        <radialGradient id="glowBody" cx="50%" cy="40%" r="60%">
+                                            <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.9"/>
+                                            <stop offset="40%" stop-color="#0284c7" stop-opacity="0.6"/>
+                                            <stop offset="100%" stop-color="#0369a1" stop-opacity="0.1"/>
+                                        </radialGradient>
+                                        <linearGradient id="organGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stop-color="#34d399"/>
+                                            <stop offset="100%" stop-color="#06b6d4"/>
+                                        </linearGradient>
+                                        <filter id="neonBlur" x="-20%" y="-20%" width="140%" height="140%">
+                                            <feGaussianBlur stdDeviation="3" result="blur" />
+                                            <feMerge>
+                                                <feMergeNode in="blur"/>
+                                                <feMergeNode in="SourceGraphic"/>
+                                            </feMerge>
+                                        </filter>
+                                    </defs>
+
+                                    <!-- Head & Brain Axis -->
+                                    <ellipse cx="160" cy="52" rx="26" ry="34" fill="url(#glowBody)" stroke="#38bdf8" stroke-width="1.5" />
+                                    <!-- Brain Gyri glow -->
+                                    <path d="M150 40 Q160 30 170 40 Q175 52 160 56 Q145 52 150 40 Z" fill="#a7f3d0" opacity="0.85" filter="url(#neonBlur)"/>
+
+                                    <!-- Neck -->
+                                    <path d="M152 82 L152 100 L168 100 L168 82 Z" fill="#0284c7" opacity="0.6"/>
+
+                                    <!-- Torso & Shoulders -->
+                                    <path d="M115 106 Q160 98 205 106 L224 165 L202 260 L118 260 L96 165 Z" fill="url(#glowBody)" stroke="#38bdf8" stroke-width="1.5" opacity="0.85"/>
+
+                                    <!-- Heart / Vascular Network -->
+                                    <path d="M155 130 C150 120 138 126 144 138 C150 148 160 156 160 156 C160 156 170 148 176 138 C182 126 170 120 165 130 Z" fill="#f43f5e" opacity="0.9" filter="url(#neonBlur)"/>
+
+                                    <!-- Liver (Right Hypochondrium) -->
+                                    <path d="M135 170 C125 170 122 188 136 198 C152 204 164 195 162 178 C160 170 145 170 135 170 Z" fill="url(#organGrad)" opacity="0.95" filter="url(#neonBlur)"/>
+
+                                    <!-- Pancreas (Epigastrium) -->
+                                    <path d="M152 195 Q175 190 188 202 Q175 214 154 204 Z" fill="#fbbf24" opacity="0.95" filter="url(#neonBlur)"/>
+
+                                    <!-- Gut / Intestines -->
+                                    <path d="M140 220 Q160 212 180 220 Q185 240 160 248 Q135 240 140 220 Z" fill="#67e8f9" opacity="0.5"/>
+
+                                    <!-- Arms -->
+                                    <!-- Left Arm -->
+                                    <path d="M115 106 L80 175 L62 250 L75 254 L92 185 L118 135 Z" fill="url(#glowBody)" opacity="0.75"/>
+                                    <!-- Left Hand -->
+                                    <ellipse cx="58" cy="265" rx="8" ry="14" fill="#38bdf8" opacity="0.6"/>
+
+                                    <!-- Right Arm -->
+                                    <path d="M205 106 L240 175 L258 250 L245 254 L228 185 L202 135 Z" fill="url(#glowBody)" opacity="0.75"/>
+                                    <!-- Right Hand -->
+                                    <ellipse cx="262" cy="265" rx="8" ry="14" fill="#38bdf8" opacity="0.6"/>
+
+                                    <!-- Pelvis & Legs -->
+                                    <!-- Left Leg (Muscle Glucose Uptake) -->
+                                    <path d="M124 260 L118 360 L126 470 L144 470 L146 360 L155 260 Z" fill="url(#glowBody)" stroke="#38bdf8" stroke-width="1.2" opacity="0.8"/>
+                                    <ellipse cx="132" cy="330" rx="14" ry="42" fill="#34d399" opacity="0.4" filter="url(#neonBlur)"/>
+                                    <!-- Left Foot -->
+                                    <ellipse cx="135" cy="485" rx="14" ry="7" fill="#38bdf8" opacity="0.7"/>
+
+                                    <!-- Right Leg -->
+                                    <path d="M196 260 L202 360 L194 470 L176 470 L174 360 L165 260 Z" fill="url(#glowBody)" stroke="#38bdf8" stroke-width="1.2" opacity="0.8"/>
+                                    <ellipse cx="188" cy="330" rx="14" ry="42" fill="#34d399" opacity="0.4" filter="url(#neonBlur)"/>
+                                    <!-- Right Foot -->
+                                    <ellipse cx="185" cy="485" rx="14" ry="7" fill="#38bdf8" opacity="0.7"/>
+                                </svg>
+                            </div>
+
+                            <!-- Surrounding Floating Organ Tags -->
+                            <div class="organ-tag tag-brain">
+                                <span class="dot"></span> Brain / Circadian Axis
+                            </div>
+                            <div class="organ-tag tag-heart">
+                                <span class="dot"></span> Heart: <span id="tagHeartRate">72</span> BPM
+                            </div>
+                            <div class="organ-tag tag-liver">
+                                <span class="dot"></span> Liver: Glycogenolysis
+                            </div>
+                            <div class="organ-tag tag-pancreas">
+                                <span class="dot"></span> Pancreas: &beta;-Cell ISF
+                            </div>
+                            <div class="organ-tag tag-muscle">
+                                <span class="dot"></span> Muscle: GLUT4 Uptake
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN -->
+                    <div class="right-col">
+                        
+                        <!-- Card 3: Circadian Rhythm & Sleep Tracking -->
+                        <div class="t-card clock-card">
+                            <div class="t-card-title">
+                                <span>Circadian Rhythm & Sleep</span>
+                                <i class="fa-solid fa-moon"></i>
+                            </div>
+                            <div class="clock-content-row">
+                                <!-- Dial Graphic -->
+                                <svg class="clock-dial-svg" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="44" fill="#f8fafc" stroke="#cbd5e1" stroke-width="3"/>
+                                    <!-- Sleep Arc (11pm - 7am) -->
+                                    <path d="M 50 6 A 44 44 0 0 1 88 72 L 50 50 Z" fill="rgba(14, 165, 233, 0.25)"/>
+                                    <!-- Hour Markers -->
+                                    <text x="50" y="20" font-size="9" font-weight="700" fill="#64748b" text-anchor="middle">12</text>
+                                    <text x="84" y="53" font-size="9" font-weight="700" fill="#64748b" text-anchor="middle">3</text>
+                                    <text x="50" y="88" font-size="9" font-weight="700" fill="#64748b" text-anchor="middle">6</text>
+                                    <text x="16" y="53" font-size="9" font-weight="700" fill="#64748b" text-anchor="middle">9</text>
+                                    <!-- Hands -->
+                                    <line x1="50" y1="50" x2="68" y2="40" stroke="#0284c7" stroke-width="3" stroke-linecap="round"/>
+                                    <line x1="50" y1="50" x2="50" y2="24" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+                                    <circle cx="50" cy="50" r="3" fill="#0284c7"/>
+                                </svg>
+
+                                <div class="clock-meta">
+                                    <div class="sleep-score-number" id="sleepScoreText">Sleep Quality: 88%</div>
+                                    <div class="sleep-stage-tag"><i class="fa-solid fa-bed"></i> 7h 42m Restored</div>
+                                    <div class="circadian-subtext">Circadian insulin sensitivity optimal</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Activity & Exercise Metrics -->
+                        <div class="t-card activity-card">
+                            <div class="t-card-title">
+                                <span>Activity & Exercise Metrics</span>
+                                <i class="fa-solid fa-person-running"></i>
+                            </div>
+                            <div class="activity-metrics-row">
+                                <div class="act-metric-box">
+                                    <div class="act-label">Steps</div>
+                                    <div class="act-value" id="stepsValue">8,432</div>
+                                </div>
+                                <div class="act-metric-box">
+                                    <div class="act-label">Active Minutes</div>
+                                    <div class="act-value" id="activeMinutesValue">45</div>
+                                </div>
+                            </div>
+                            <div class="activity-curve-wrap">
+                                <canvas id="activityCanvas"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Card 5: Medication Tracking -->
+                        <div class="t-card meds-card">
+                            <div class="t-card-title">
+                                <span>Medication Tracking</span>
+                                <i class="fa-solid fa-prescription-bottle-medical"></i>
+                            </div>
+                            <div class="med-item-row" id="medItemRow">
+                                <div class="med-info-left">
+                                    <div class="med-icon-wrap"><i class="fa-solid fa-capsules"></i></div>
+                                    <div>
+                                        <div class="med-name-text" id="primaryMedName">Metformin 500mg</div>
+                                        <div class="med-time-text">Taken at 8:00 AM (Post-Breakfast)</div>
+                                    </div>
+                                </div>
+                                <div class="med-status-check"><i class="fa-solid fa-circle-check"></i></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- BOTTOM CENTER: PERSONALIZED AI RECOMMENDATIONS -->
+                <div class="recommendations-card">
+                    <div class="t-card-title">
+                        <span>Personalized AI Recommendations (Metabolic Digital Twin Engine)</span>
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <div class="rec-grid">
+                        <div class="rec-item">
+                            <i class="fa-solid fa-shoe-prints rec-icon"></i>
+                            <div class="rec-content">
+                                <h5 id="rec1Title">Recommendation 1: Postprandial Exercise</h5>
+                                <p id="rec1Body">Take a 15-minute walk after dinner to accelerate peripheral GLUT4 glucose uptake and blunt predicted spike.</p>
+                            </div>
+                        </div>
+                        <div class="rec-item rec-alt">
+                            <i class="fa-solid fa-wheat-awn rec-icon"></i>
+                            <div class="rec-content">
+                                <h5 id="rec2Title">Recommendation 2: Glycemic Load Adjustment</h5>
+                                <p id="rec2Body">Target carbohydrate intake under 40g for tomorrow morning to mitigate hepatic glucose release during dawn phenomenon.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- RIGHT: CGM SENSOR & APPLICATOR HARDWARE MOCKUP -->
+        <div class="sensor-container">
+            <!-- Round Sensor Patch -->
+            <div class="cgm-patch">
+                <div class="cgm-patch-inner">
+                    <i class="fa-solid fa-wifi"></i>
+                </div>
+                <div class="cgm-ble-dot"></div>
+            </div>
+            <!-- Applicator Insertion Tool -->
+            <div class="applicator-tool">
+                <div class="applicator-plunger"></div>
+                <div class="applicator-needle-guard"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SUMMIT EVALUATION CALLOUT BANNER -->
+    <div class="summit-callout-banner">
+        <i class="fa-solid fa-ribbon"></i>
+        <div>
+            <strong>Happiest Health Summit - 2026 Proof-of-Concept:</strong> Twin Health's Whole Body Digital Twin platform analyzes 3,000 daily data points from wearable sensors to predict individual metabolic responses, enabling personalized diabetes reversal without escalating medications—achieving 71% remission rates in clinical trials.
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        let currentPatientId = 1;
+        let cgmChartInstance = null;
+        let activityChartInstance = null;
+        let streamTimer = null;
+        let isStreaming = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initPatientSelector();
+            initCharts();
+            setupEventListeners();
+        });
+
+        // 1. Fetch patients & populate selector
+        async function initPatientSelector() {
+            try {
+                const res = await fetch('/api/patients?limit=108');
+                const data = await res.json();
+                const sel = document.getElementById('patientSelect');
+                sel.innerHTML = '';
+                
+                data.patients.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = `${p.first_name} ${p.last_name} (${p.twin_profile ? p.twin_profile.twin_name : 'PT-' + p.id})`;
+                    sel.appendChild(opt);
+                });
+
+                sel.value = currentPatientId;
+                await loadPatientTwin(currentPatientId);
+
+                // Auto-start continuous streaming on load
+                setTimeout(() => {
+                    const btn = document.getElementById('btnLiveTick');
+                    if (btn && !isStreaming) btn.click();
+                }, 800);
+            } catch (err) {
+                console.error("Failed to load patients", err);
+            }
+        }
+
+        // 2. Load Patient Twin State
+        async function loadPatientTwin(patientId) {
+            currentPatientId = patientId;
+            try {
+                // Fetch EHR & Twin profile
+                const pRes = await fetch(`/api/patients/${patientId}`);
+                const pData = await pRes.json();
+                if (pData.status === 'success') {
+                    const p = pData.patient;
+                    document.getElementById('tabletPatientName').textContent = `${p.first_name} ${p.last_name}`;
+                    document.getElementById('tabletTwinId').textContent = p.twin_profile ? p.twin_profile.twin_name : `PT-${p.id}`;
+
+                    // Set primary medication from patient's real EHR records
+                    if (p.medications && p.medications.length > 0) {
+                        document.getElementById('primaryMedName').textContent = p.medications[0].medication_name;
+                    } else {
+                        document.getElementById('primaryMedName').textContent = 'Metformin 500mg';
+                    }
+                }
+
+                // Fetch Telemetry & ML Prediction
+                fetchTelemetryAndTick();
+
+            } catch (err) {
+                console.error("Error loading twin", err);
+            }
+        }
+
+        // 3. Fetch Telemetry & Live Tick
+        async function fetchTelemetryAndTick() {
+            try {
+                // Run live tick to get latest sensor reading and real-time XGBoost 30-min prediction
+                const tickRes = await fetch(`/api/twins/${currentPatientId}/tick?step=false`);
+                const tick = await tickRes.json();
+
+                // Fetch telemetry history from the dataset
+                const tRes = await fetch(`/api/twins/${currentPatientId}/telemetry?limit=24`);
+                const tData = await tRes.json();
+
+                let predVal = null;
+                if (tick.status === 'success' && tick.data && tick.data.telemetry) {
+                    const g = tick.data.telemetry.glucose;
+                    const pred = tick.data.prediction;
+                    predVal = pred.predicted_glucose_30m;
+                    const hr = Math.round(tick.data.telemetry.heart_rate || 72);
+
+                    // Update Smartwatch display
+                    document.getElementById('watchGlucose').textContent = Math.round(g);
+                    document.getElementById('tagHeartRate').textContent = hr;
+
+                    // Dynamic trend arrow based on AI model rate of change
+                    const arrowEl = document.getElementById('watchArrow');
+                    if (pred.risk_assessment.trend_direction.includes('rising')) {
+                        arrowEl.textContent = '↗';
+                        arrowEl.style.color = '#ef4444';
+                    } else if (pred.risk_assessment.trend_direction.includes('falling')) {
+                        arrowEl.textContent = '↘';
+                        arrowEl.style.color = '#38bdf8';
+                    } else {
+                        arrowEl.textContent = '→';
+                        arrowEl.style.color = '#10b981';
+                    }
+
+                    // Update Dynamic Ingestion Banner
+                    const syncEl = document.getElementById('syncStatusText');
+                    if (syncEl) {
+                        syncEl.innerHTML = `<i class="fa-solid fa-database"></i> Stream: ${tick.data.telemetry.dataset_source} (Row ${tick.data.telemetry.cursor_index + 1}) | 30m Forecast: ${predVal.toFixed(1)} mg/dL`;
+                    }
+
+                    // Dynamic Clinical Recommendation
+                    if (pred.risk_assessment.risk_level === 'Warning' || pred.risk_assessment.risk_level === 'Critical') {
+                        document.getElementById('rec1Title').textContent = `Clinical Alert: ${pred.risk_assessment.alert_code}`;
+                        document.getElementById('rec1Body').textContent = pred.risk_assessment.clinical_recommendation;
+                    } else {
+                        document.getElementById('rec1Title').textContent = 'Continuous Adaptive Optimization';
+                        document.getElementById('rec1Body').textContent = `Glucose stable in target range (Current: ${g.toFixed(1)} mg/dL, Predicted: ${predVal.toFixed(1)} mg/dL).`;
+                    }
+                }
+
+                if (tData.status === 'success' && tData.data && tData.data.readings) {
+                    updateCgmChart(tData.data.readings, predVal);
+                }
+            } catch (err) {
+                console.error("Telemetry tick error", err);
+            }
+        }
+
+        // 4. Initialize Chart.js
+        function initCharts() {
+            // CGM Curve Chart
+            const ctxCgm = document.getElementById('cgmCurveCanvas').getContext('2d');
+            cgmChartInstance = new Chart(ctxCgm, {
+                type: 'line',
+                data: {
+                    labels: ['0h', '4h', '8h', '12h', '16h', '20h', '24h', '+30m'],
+                    datasets: [
+                        {
+                            label: 'Actual Glucose',
+                            data: [110, 115, 140, 120, 105, 130, 105, null],
+                            borderColor: '#0284c7',
+                            backgroundColor: 'rgba(2, 132, 199, 0.08)',
+                            borderWidth: 2.2,
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 2.5
+                        },
+                        {
+                            label: 'AI Predicted Response',
+                            data: [null, null, null, null, null, null, 105, 118],
+                            borderColor: '#0d9488',
+                            borderWidth: 2.2,
+                            borderDash: [5, 4],
+                            fill: false,
+                            tension: 0.35,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#0d9488'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 9 }, color: '#64748b' }
+                        },
+                        y: {
+                            min: 60,
+                            max: 200,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { font: { size: 9 }, color: '#64748b' }
+                        }
+                    }
+                }
+            });
+
+            // Mini Glycemic Curve in Meal Card
+            const ctxMini = document.getElementById('miniGlycemicCanvas').getContext('2d');
+            new Chart(ctxMini, {
+                type: 'line',
+                data: {
+                    labels: [0, 15, 30, 45, 60],
+                    datasets: [{
+                        data: [105, 125, 138, 120, 110],
+                        borderColor: '#f97316',
+                        backgroundColor: 'rgba(249, 115, 22, 0.15)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    }
+                }
+            });
+
+            // Activity waveform
+            const ctxAct = document.getElementById('activityCanvas').getContext('2d');
+            activityChartInstance = new Chart(ctxAct, {
+                type: 'line',
+                data: {
+                    labels: [1,2,3,4,5,6,7,8,9,10,11,12],
+                    datasets: [{
+                        data: [120, 180, 260, 450, 720, 540, 890, 610, 430, 780, 920, 850],
+                        borderColor: '#f43f5e',
+                        backgroundColor: 'rgba(244, 63, 94, 0.08)',
+                        fill: true,
+                        tension: 0.35,
+                        borderWidth: 1.8,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    }
+                }
+            });
+        }
+
+        function updateCgmChart(readings, predVal) {
+            if (!readings || readings.length === 0) return;
+            const labels = readings.map(r => r.recorded_at.split(' ')[1] ? r.recorded_at.split(' ')[1].substring(0, 5) : '');
+            const vals = readings.map(r => parseFloat(r.glucose_level));
+
+            // Append a 30m forecast point dynamically calculated by XGBoost
+            const lastVal = vals[vals.length - 1];
+            const predictedVal = (predVal !== null && predVal !== undefined) ? Math.round(predVal) : Math.round(lastVal);
+
+            labels.push('+30m');
+            const actualSeries = [...vals, null];
+            const predSeries = Array(vals.length - 1).fill(null).concat([lastVal, predictedVal]);
+
+            cgmChartInstance.data.labels = labels;
+            cgmChartInstance.data.datasets[0].data = actualSeries;
+            cgmChartInstance.data.datasets[1].data = predSeries;
+            cgmChartInstance.update('none');
+        }
+
+        // 5. Setup Interactive Event Listeners
+        function setupEventListeners() {
+            // Patient selector change
+            document.getElementById('patientSelect').addEventListener('change', (e) => {
+                loadPatientTwin(parseInt(e.target.value));
+            });
+
+            // Live stream toggle
+            const btnTick = document.getElementById('btnLiveTick');
+            btnTick.addEventListener('click', () => {
+                isStreaming = !isStreaming;
+                const icon = document.getElementById('tickIcon');
+                const text = document.getElementById('tickText');
+                if (isStreaming) {
+                    icon.className = 'fa-solid fa-pause';
+                    text.textContent = 'Pause Stream';
+                    btnTick.style.background = '#e11d48';
+                    streamTimer = setInterval(() => {
+                        fetch(`/api/twins/${currentPatientId}/tick?step=true`)
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.status === 'success') {
+                                    fetchTelemetryAndTick();
+                                }
+                            });
+                    }, 3500);
+                } else {
+                    icon.className = 'fa-solid fa-play';
+                    text.textContent = 'Auto-Stream Sensor';
+                    btnTick.style.background = 'linear-gradient(135deg, #0ea5e9, #0d9488)';
+                    clearInterval(streamTimer);
+                }
+            });
+
+            // Meal chips click
+            document.querySelectorAll('.meal-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const carbs = parseInt(chip.dataset.carbs);
+                    document.getElementById('mealInput').value = `${chip.textContent}`;
+                    simulateMeal(carbs, chip.textContent);
+                });
+            });
+
+            // Meal Enter Button
+            document.getElementById('btnMealEnter').addEventListener('click', () => {
+                const val = document.getElementById('mealInput').value.trim();
+                const carbs = parseInt(val) || 45;
+                simulateMeal(carbs, val || 'Custom Meal');
+            });
+        }
+
+        // 6. Simulate Meal on the Digital Twin
+        async function simulateMeal(carbs, mealName) {
+            try {
+                document.getElementById('activeMealTitle').textContent = `Logged: ${mealName}`;
+                document.getElementById('activeMealDesc').textContent = `${carbs}g carbs • Simulating whole-body metabolic response...`;
+
+                const res = await fetch(`/api/twins/${currentPatientId}/simulate-event`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        event_type: 'MEAL',
+                        params: { carbs: carbs }
+                    })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const newPred = data.result.new_prediction;
+                    document.getElementById('watchGlucose').textContent = Math.round(data.result.updated_telemetry.glucose);
+                    document.getElementById('activeMealDesc').textContent = `${carbs}g carbs • Predicted +${Math.round(newPred.delta_mg_dl)} mg/dL spike`;
+
+                    // Trigger pulse animation on liver & gut
+                    document.getElementById('syncStatusText').textContent = `In-Silico Perturbation: +${carbs}g carbs applied`;
+                    fetchTelemetryAndTick();
+                }
+            } catch (err) {
+                console.error("Meal simulation failed", err);
+            }
+        }
+    </script>
+</body>
+</html>

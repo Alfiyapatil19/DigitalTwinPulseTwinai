@@ -1,0 +1,48 @@
+flowchart LR
+    %% PULSE-TWIN 2026 - System Architecture
+
+    subgraph DataSources["1. Heterogeneous Data Sources"]
+        direction TB
+        EHR["Synthetic EHR (C-CDA)<br/>- 108 Patient Records (HL7 XML)<br/>- Diagnoses (SNOMED-CT)<br/>- Medications (RxNorm)<br/>- Demographics & Labs"]
+        Wearable["Wearable Sensors (Empatica E4)<br/>- Heart Rate (BPM)<br/>- Skin Temperature (°C)<br/>- Galvanic Skin Response (GSR)<br/>- Stress Levels (0-5)"]
+        CGM["Continuous Glucose Monitoring<br/>- Kaggle GlucoBench (15,731 Rows)<br/>- 10 Benchmark Subjects (U001-U010)<br/>- Interstitial Glucose Telemetry"]
+    end
+
+    subgraph Preprocessing["2. Data Ingestion & Preprocessing"]
+        direction TB
+        ETL["ETL Ingestion Pipeline<br/>- XML C-CDA Parser<br/>- CSV Stream Importer<br/>- Data Cleansing & Validation"]
+        FeatureEng["19-Dim Feature Engineering<br/>- Temporal Lags (Lag-1, 3, 6)<br/>- 1-Hour Rolling Mean<br/>- Velocity & Acceleration<br/>- Multimodal Sensor Fusion"]
+        UnifiedData["Unified Clinical Datasets<br/>- Relational Schema (MySQL 8.0)<br/>- Patient-Specific Physiological Priors"]
+        ETL --> FeatureEng --> UnifiedData
+    end
+
+    subgraph DigitalTwin["3. Patient Digital Twin Core"]
+        direction TB
+        Profile["Personalized Twin Profile<br/>- Baseline HbA1c<br/>- Insulin Sensitivity Factor (ISF)<br/>- Carb Ratio (ICR)<br/>- Target Range: 70-180 mg/dL"]
+        MetabolicEngine["In-Silico Metabolic Engine<br/>- Compartmental Pharmacokinetics<br/>- Glucose-Insulin Dynamics<br/>- Physiological State Tracking"]
+        Profile --> MetabolicEngine
+    end
+
+    subgraph AIML["4. AI/ML Prediction & Simulation"]
+        direction TB
+        XGBoost["Champion XGBoost Regressor<br/>- 30-Minute Glucose Horizon<br/>- R² = 0.987, RMSE = 1.43 mg/dL<br/>- 99.97% Clarke Zone A Accuracy<br/>- 1.84ms Inference Latency"]
+        ClinicalRules["ADA Clinical Rules Engine<br/>- Level 2 Hypo Alert: <54 mg/dL<br/>- Mild Hypo: <70 mg/dL<br/>- Hyperglycemia Alert: >180 mg/dL<br/>- Severe Hyperglycemia: >250 mg/dL"]
+        WhatIf["What-If Simulation Sandbox<br/>- Meal Ingestion (Carbs: 20-75g)<br/>- Insulin Bolus (Correction: 2-6U)<br/>- Physical Exercise (Steps & Intensity)<br/>- Acute Stress Perturbations"]
+        XGBoost --> ClinicalRules
+        WhatIf --> XGBoost
+    end
+
+    subgraph Dashboard["5. Doctor Clinical Dashboard"]
+        direction TB
+        Overview["Cohort Overview & Provenance<br/>- Population Glycemic Stats<br/>- SNOMED-CT Conditions Distribution"]
+        ForecastUI["30-Min Predictive Trajectory<br/>- Chart.js Dynamic Stream<br/>- 95% Confidence Interval Cone"]
+        AlertCenter["Alert Monitoring Center<br/>- Real-Time Severity Sorting<br/>- Pending / Confirmed / Resolved Workflow"]
+        DatasetStudio["Interactive ML Dataset Predictor<br/>- Row Ingestion from 15,731 Records<br/>- Ground Truth vs Prediction Comparison"]
+        MetabolicTwinUI["Whole-Body Metabolic Twin UI<br/>- 3D Interactive Anatomical Avatar<br/>- Multi-Organ Feedback & Telemetry"]
+    end
+
+    %% Pipeline Data Connections
+    DataSources --> Preprocessing
+    Preprocessing --> DigitalTwin
+    DigitalTwin --> AIML
+    AIML --> Dashboard

@@ -1,0 +1,106 @@
+{
+  "champion_model": "XGBoost",
+  "trained_at": "2026-10-11T13:13:36.563609",
+  "prediction_horizon": "30 minutes ahead",
+  "train_samples": 12596,
+  "test_samples": 3105,
+  "features": [
+    "glucose",
+    "glucose_lag_1",
+    "glucose_lag_3",
+    "glucose_lag_6",
+    "glucose_roll_mean_1h",
+    "glucose_velocity",
+    "glucose_accel",
+    "insulin_bolus",
+    "insulin_basal",
+    "carbs",
+    "heart_rate",
+    "skin_temp",
+    "gsr",
+    "stress_level",
+    "hbA1c",
+    "age",
+    "weight",
+    "carb_ratio",
+    "insulin_sensitivity"
+  ],
+  "feature_importance": {
+    "glucose": 0.594811737537384,
+    "glucose_lag_1": 0.35349246859550476,
+    "glucose_lag_3": 0.039543718099594116,
+    "glucose_roll_mean_1h": 0.004059108905494213,
+    "glucose_lag_6": 0.0037930612452328205,
+    "insulin_sensitivity": 0.0017776816384866834,
+    "age": 0.0006269076839089394,
+    "glucose_velocity": 0.0003342808922752738,
+    "insulin_bolus": 0.00021986955835018307,
+    "hbA1c": 0.0002089890476781875,
+    "weight": 0.0001902714284369722,
+    "carbs": 0.0001610511972103268,
+    "carb_ratio": 0.00015765853459015489,
+    "skin_temp": 0.0001466303801862523,
+    "gsr": 0.00011432459723437205,
+    "insulin_basal": 9.540189785184339e-05,
+    "glucose_accel": 9.412308281753212e-05,
+    "heart_rate": 8.951374184107408e-05,
+    "stress_level": 8.315596642205492e-05
+  },
+  "model_comparison": {
+    "Ridge_Regression": {
+      "rmse": 1.4944,
+      "mae": 1.0589,
+      "mape": 1.15,
+      "r2": 0.9861,
+      "clarke": {
+        "zone_a_pct": 99.96779388083736,
+        "zone_b_pct": 0.032206119162640906,
+        "clinically_acceptable_pct": 100.0,
+        "unacceptable_pct": 0.0
+      }
+    },
+    "Random_Forest": {
+      "rmse": 4.7361,
+      "mae": 2.289,
+      "mape": 2.26,
+      "r2": 0.8607,
+      "clarke": {
+        "zone_a_pct": 99.96779388083736,
+        "zone_b_pct": 0.032206119162640906,
+        "clinically_acceptable_pct": 100.0,
+        "unacceptable_pct": 0.0
+      }
+    },
+    "XGBoost": {
+      "rmse": 1.4322,
+      "mae": 1.049,
+      "mape": 1.15,
+      "r2": 0.9873,
+      "clarke": {
+        "zone_a_pct": 100.0,
+        "zone_b_pct": 0.0,
+        "clinically_acceptable_pct": 100.0,
+        "unacceptable_pct": 0.0
+      }
+    }
+  },
+  "champion_metrics": {
+    "rmse": 1.4322,
+    "mae": 1.049,
+    "mape": 1.15,
+    "r2": 0.9873,
+    "clarke": {
+      "zone_a_pct": 100.0,
+      "zone_b_pct": 0.0,
+      "clinically_acceptable_pct": 100.0,
+      "unacceptable_pct": 0.0
+    }
+  },
+  "clinical_limitations": [
+    "Physiological sensor lag: Interstitial CGM readings lag capillary blood glucose by 5-15 minutes.",
+    "Unannounced dietary intake: Carbohydrate consumption not logged in real-time may result in unpredicted postprandial spikes.",
+    "Variable insulin pharmacokinetics: Absorption rates can vary with injection site temperature, lipohypertrophy, and exercise.",
+    "Circadian & illness variability: Acute stress, infection, or sleep deprivation alter insulin sensitivity dynamically.",
+    "Generalization threshold: Predictions for values far outside [40, 400] mg/dL require clinical fingerstick verification."
+  ]
+}
